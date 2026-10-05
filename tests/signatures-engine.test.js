@@ -111,3 +111,14 @@ test('annotations that are not pictures are left alone', async () => {
   const { id } = engine.openDocument(doc.saveToBuffer('').asUint8Array());
   assert.deepStrictEqual(engine.listSignatures(id, 0), []);
 });
+
+test('a signature carries no note, colour or name that a reader could show as a comment', async () => {
+  const { mupdf, engine, makePdf } = await load();
+  const { id } = engine.openDocument(makePdf(['hi']));
+  const key = engine.addSignature(id, 0, samplePng(mupdf), { x: 10, y: 10, w: 40, h: 20 });
+  engine.moveSignature(id, 0, key, { x: 20, y: 20, w: 40, h: 20 });
+  const doc = mupdf.Document.openDocument(engine.save(id), 'application/pdf');
+  const [annot] = doc.loadPage(0).getAnnotations();
+  const dict = annot.getObject();
+  for (const name of ['Contents', 'C', 'Name']) assert.ok(dict.get(name).isNull(), name);
+});

@@ -39,9 +39,15 @@ export function createSignatures(doc, withPage) {
     annot.getObject().get('AP', 'N').put('Matrix', [c, s, -s, c, 0, 0]);
   }
 
+  // A stamp's default text, colour and name make some readers show a note icon next to it.
+  function withoutNote(annot) {
+    for (const key of ['Contents', 'C', 'Name']) annot.getObject().delete(key);
+  }
+
   // Changing the rect or the image rebuilds the appearance, so the turn is applied after.
   function refresh(page, annot) {
     annot.update();
+    withoutNote(annot);
     keepUpright(page, annot);
     annot.update();
   }
@@ -52,7 +58,6 @@ export function createSignatures(doc, withPage) {
       try {
         const annot = page.createAnnotation('Stamp');
         annot.setFlags(mupdf.PDFAnnotation.IS_PRINT);
-        annot.setContents('Signature');
         annot.setRect(toRect(rect));
         annot.setStampImage(image);
         refresh(page, annot);
