@@ -1,4 +1,5 @@
 import { activeTab } from '../state/store.js';
+import { changePassword } from './password.js';
 
 const isTextField = (el) => el?.matches?.('input, textarea');
 
@@ -18,6 +19,9 @@ export function runCommand({ store, reader, editing, closing, textEditing, redac
     case 'save':
     case 'save-as':
       if (tab) report(editing.save(tab.id, { as: name === 'save-as' }));
+      break;
+    case 'password':
+      if (tab) report(changePassword({ reader, editing }, tab.id));
       break;
     case 'save-all-and-close':
       report(closing.saveAllAndClose());

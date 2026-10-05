@@ -86,12 +86,14 @@ Fill form fields, save. Flatten was left out on purpose (decided with the user).
 - **Tested:** engine tests on a generated form (`tests/fixtures/make-form.mjs`): list, fill, limits, radio groups, save and reopen, rotated pages. Driven in the running app: typing, Tab across a redraw, checkbox, radio, drop-down, list, undo and Save.
 - **Known limits:** multi-select lists take one choice; on a rotated page the typing box stays upright while the saved text turns with the page; the typing boxes always show (no hide toggle).
 
-## Phase 5: Advanced · **Opus** · 🟨 (5a done)
+## Phase 5: Advanced · **Opus** · 🟨 (5a, 5b done)
 True redaction, OCR (Tesseract.js, offline), compression, password protection. Split in four, one session each.
 - **5a · true redaction · ✅.** Redact (toolbar, Edit → Redact or Ctrl+Shift+X) removes the selected text at once; with nothing selected it turns on redact mode, where each area dragged over a page is removed. Esc ends it. Text under the area is taken out (not covered), images lose the covered pixels, drawings fully inside it go. A Black box option (on by default) leaves a box in its place. Each redaction is one undo step; Save leaves the removed content out of the file. Selected text is redacted as a band through the middle of each line, since whole line boxes overlap the lines next to them.
   - **Tested:** engine tests (text gone and back on undo, several areas, box or none, image pixels, saved file, turned page). Driven in the running app: drag with and without box, selected word, Esc, Undo/Redo from the menu, Save, and the saved file checked for the removed words.
   - **Known limits:** annotations over the area (notes, highlights) are kept; partly covered lines and shapes stay under the box.
-- **5b · password protection · ⬜.** Open protected files, save with a password.
+- **5b · password protection · ✅.** Protected files ask for their password when opened (built in Phase 1). File → Password… sets, changes or removes the password that opens the file, with AES-256. It is an undoable edit like any other and takes effect on the next Save. A protected file saved without touching it keeps its password. Owner passwords and permissions (no printing, no copying) were left out on purpose: readers don't enforce them reliably.
+  - **Tested:** engine tests (kept on plain save, set on a plain file, changed, removed, undone back to the file's own, comma refused, fonts still cut down in a protected file). Driven in the running app: menu on a locked tab does nothing, change, remove, undo, set on a plain file, mismatch and comma messages, Save, and each saved file checked for its password.
+  - **Known limits:** a password can't contain a comma (MuPDF's save options are split at commas); setting a password on a file that only had permissions drops those permissions.
 - **5c · compression · ⬜.** A save option that makes the file smaller.
 - **5d · OCR · ⬜.** Tesseract.js offline, adds an invisible text layer to scanned pages.
 

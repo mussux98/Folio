@@ -10,6 +10,7 @@ import { createTextEdits } from './text-edits.js';
 import { createPages } from './pages.js';
 import { createForms } from './forms.js';
 import { createRedactions } from './redactions.js';
+import { createProtection } from './protection.js';
 
 const MAX_SNIPPET = 120;
 
@@ -19,6 +20,7 @@ export function createEngine() {
   const textEdits = new Map(); // document id -> its text changes, kept for undo
   const pageTools = new Map(); // document id -> its removed pages, kept for undo
   const redactions = new Map(); // document id -> its redactions, kept for undo
+  const protections = new Map(); // document id -> its password setting for the next save
 
   function get(id) {
     const doc = documents.get(id);
@@ -50,12 +52,15 @@ export function createEngine() {
     }
     const id = nextId++;
     documents.set(id, doc);
+    protections.set(id, createProtection(doc));
     return describe(id, doc, doc.needsPassword());
   }
 
   function authenticate(id, password) {
     const doc = get(id);
-    return describe(id, doc, !doc.authenticatePassword(password));
+    const locked = !doc.authenticatePassword(password);
+    if (!locked) protections.get(id).unlocked(password);
+    return describe(id, doc, locked);
   }
 
   function closeDocument(id) {
@@ -64,6 +69,7 @@ export function createEngine() {
     textEdits.delete(id);
     pageTools.delete(id);
     redactions.delete(id);
+    protections.delete(id);
   }
 
   // [width, height] for every page, as one flat array.
@@ -261,9 +267,18 @@ export function createEngine() {
   // out what no page uses any more, such as the text an edit removed.
   function save(id) {
     // New pictures (signatures) and edited pages are stored raw until compressed here.
-    const bytes = toBytes(get(id).saveToBuffer('garbage,compress,compress-images=yes'));
-    return textEdits.get(id)?.hasWholeFonts() ? subsetted(bytes) : bytes;
+    const protection = protections.get(id);
+    const bytes = toBytes(get(id).saveToBuffer('garbage,compress,compress-images=yes' + protection.saveOptions()));
+    return textEdits.get(id)?.hasWholeFonts() ? subsetted(bytes, protection.password()) : bytes;
   }
+
+  // Password: null keeps what the file had, '' takes it off. Returns the setting it replaced.
+  function setProtection(id, password) {
+    get(id);
+    if (password?.includes(',')) throw new Error('A password cannot contain a comma.');
+    return protections.get(id).swap(password);
+  }
+  const isProtected = (id) => (get(id), protections.get(id).isProtected());
 
   function toBytes(buffer) {
     try {
@@ -276,10 +291,11 @@ export function createEngine() {
   // Installed fonts go into the file whole. Here a copy of the saved file keeps
   // only the letters it uses, so the document being edited still has them all.
   // If that fails, the whole fonts are saved.
-  function subsetted(bytes) {
+  function subsetted(bytes, password) {
     let copy = null;
     try {
       copy = mupdf.Document.openDocument(bytes, 'application/pdf').asPDF();
+      if (copy.needsPassword()) copy.authenticatePassword(password);
       copy.subsetFonts();
       return toBytes(copy.saveToBuffer('garbage,compress'));
     } catch {
@@ -294,5 +310,6 @@ export function createEngine() {
     pageTransform, rotatePage, deletePages, restorePages, arrangePages, addBlankPage, insertPagesFrom, extractPages, addSignature, moveSignature, removeSignature, listSignatures, signaturePicture,
     addAnnotation, changeAnnotation, removeAnnotation, listAnnotations, listFormFields, setFormValue,
     textLineAt, documentFonts, replaceText, swapText, redact, swapRedaction, save,
+    setProtection, isProtected,
   };
 }

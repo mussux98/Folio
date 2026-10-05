@@ -252,6 +252,13 @@ body.editing-text .edit-line:hover { background: rgba(137, 178, 222, .18); outli
 .thumb.selected .thumb-label { background: var(--accent); color: var(--accent-fg); border-radius: 8px; padding: 0 8px; }
 .thumb-drop { position: absolute; left: 6px; right: 6px; height: 3px; margin-top: -2px; background: var(--accent); border-radius: 2px; pointer-events: none; }
 .split-dialog { text-align: left; width: min(360px, 94vw); }
+.password-dialog { text-align: left; width: min(380px, 94vw); }
+.password-dialog h2 { margin: 0 0 8px; font-size: 15px; }
+.password-dialog label { display: grid; grid-template-columns: 72px 1fr; align-items: center; margin-top: 12px; }
+.password-dialog input { font: inherit; background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 4px; padding: 4px 6px; }
+.password-problem:empty { display: none; }
+.password-dialog .password-problem { margin-top: 10px; color: #e66; }
+.password-dialog .left { margin-right: auto; }
 .split-dialog input { width: 72px; margin-left: 8px; font: inherit; background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 4px; padding: 4px 6px; }
 
 /* Form fields */
