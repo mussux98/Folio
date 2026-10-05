@@ -80,8 +80,11 @@ Highlight, underline, strikethrough, sticky notes, freehand drawing, shapes, sta
 - **3a · text markup and sticky notes · ✅.** Select text, then Highlight / Underline / Strike (one undo step even across pages). Note: click a page, type, click away. Click a markup line or a note to recolour, edit or delete it, including ones already in the file. Highlights are written with square ends and multiply blend.
 - **3b · freehand, shapes, stamps · ✅.** Pen (stays on until Esc), Shapes menu (rectangle, ellipse, line, arrow; Shift for square, circle, 45°) and Stamp menu (Approved, Not Approved, Draft, Final, Confidential, For Comment). Click a drawing to recolour, change its thickness, drag it, or resize a box shape from its corners (stamps keep their shape); ink is move-only. Shapes are outlines only. Stamps are counter-turned so they stay upright on rotated pages. Picture stamps stay with signatures.
 
-## Phase 4: Forms · **Sonnet** · ⬜
-Fill form fields, save, flatten.
+## Phase 4: Forms · **Sonnet** · ✅
+Fill form fields, save. Flatten was left out on purpose (decided with the user).
+- **Built:** text (single and multi-line, max length), checkbox, radio, drop-down (also editable) and list fields are filled in over the page. Tab goes field to field, Esc reverts, each change is an undoable command, and Save writes the answers. Read-only fields, signature fields (signing is done with stamps), push buttons and form scripts are skipped.
+- **Tested:** engine tests on a generated form (`tests/fixtures/make-form.mjs`): list, fill, limits, radio groups, save and reopen, rotated pages. Driven in the running app: typing, Tab across a redraw, checkbox, radio, drop-down, list, undo and Save.
+- **Known limits:** multi-select lists take one choice; on a rotated page the typing box stays upright while the saved text turns with the page; the typing boxes always show (no hide toggle).
 
 ## Phase 5: Advanced · **Opus** · ⬜
 True redaction, OCR (Tesseract.js, offline), compression, password protection.

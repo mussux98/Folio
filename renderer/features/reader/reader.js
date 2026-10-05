@@ -13,6 +13,7 @@ export function createReader({ container, store, folio }) {
   let textEditing = null; // the same for text editing
   let pageTools = null; // and for the page tools
   let annotations = null; // and for text markup and notes
+  let forms = null; // and for form fields
   const entries = new Map(); // tab id -> entry
   const lastSpot = new Map(); // tab id -> { top, zoom } of a tab that is not showing
 
@@ -117,6 +118,7 @@ export function createReader({ container, store, folio }) {
           openShapes: (anchor) => annotations.openShapes(anchor),
           openStamps: (anchor) => annotations.openStamps(anchor),
         },
+        forms: { formLayer: (args) => forms.layerFor(args) },
         pageTools: Object.fromEntries(['move', 'remove', 'copy', 'cut', 'paste'].map((name) => [name, (...args) => pageTools[name](...args)])),
       });
       mounted.view = view;
@@ -168,6 +170,9 @@ export function createReader({ container, store, folio }) {
     },
     setAnnotations(feature) {
       annotations = feature;
+    },
+    setForms(feature) {
+      forms = feature;
     },
     setPageTools(feature) {
       pageTools = feature;

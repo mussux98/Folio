@@ -8,6 +8,7 @@ import { createSignatures } from './signatures.js';
 import { createAnnotations } from './annotations.js';
 import { createTextEdits } from './text-edits.js';
 import { createPages } from './pages.js';
+import { createForms } from './forms.js';
 
 const MAX_SNIPPET = 120;
 
@@ -229,6 +230,11 @@ export function createEngine() {
   const removeAnnotation = (id, index, key) => annotations(id).remove(index, key);
   const listAnnotations = (id, index) => annotations(id).list(index);
 
+  // Form fields: each call works on one page.
+  const forms = (id) => createForms((index, task) => withPage(id, index, task));
+  const listFormFields = (id, index) => forms(id).list(index);
+  const setFormValue = (id, index, key, value) => forms(id).set(index, key, value);
+
   // Text: each change has a key, so undo and redo can swap it out and back in.
   function texts(id) {
     if (!textEdits.has(id)) textEdits.set(id, createTextEdits(get(id), (index, task) => withPage(id, index, task)));
@@ -275,7 +281,7 @@ export function createEngine() {
   return {
     openDocument, authenticate, closeDocument, pageSizes, renderPage, getText, searchPage, getLinks, getOutline,
     pageTransform, rotatePage, deletePages, restorePages, arrangePages, addBlankPage, insertPagesFrom, extractPages, addSignature, moveSignature, removeSignature, listSignatures, signaturePicture,
-    addAnnotation, changeAnnotation, removeAnnotation, listAnnotations,
+    addAnnotation, changeAnnotation, removeAnnotation, listAnnotations, listFormFields, setFormValue,
     textLineAt, documentFonts, replaceText, swapText, save,
   };
 }

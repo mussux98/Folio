@@ -6,7 +6,7 @@ const sameScale = (a, b) => Math.abs(a - b) < b * 0.01;
 
 // One page in the scroll. It always exists as an empty sheet of the right size;
 // the picture and the text layers are loaded only while the page is near the screen.
-// width and height are in PDF points; actions is { goToPage(n), openLink(url), signLayer(args), editLayer(args), annotationLayer(args) }.
+// width and height are in PDF points; actions is { goToPage(n), openLink(url), signLayer(args), editLayer(args), annotationLayer(args), formLayer(args) }.
 export function createPageView({ index, width, height, engine, docId, actions }) {
   const el = document.createElement('div');
   el.className = 'page';
@@ -23,6 +23,8 @@ export function createPageView({ index, width, height, engine, docId, actions })
     (signatures) => actions.signLayer({ index, signatures, width, height }));
   const annotating = createOverlay(el, () => engine.listAnnotations(docId, index, -1),
     (list) => actions.annotationLayer({ index, annotations: list, width, height }));
+  const forming = createOverlay(el, () => engine.listFormFields(docId, index, -1),
+    (fields) => actions.formLayer({ index, fields, width, height }));
   let marks = [];
   let highlights = null;
 
@@ -84,6 +86,7 @@ export function createPageView({ index, width, height, engine, docId, actions })
     }
     signing.cancelPending();
     annotating.cancelPending();
+    forming.cancelPending();
   }
 
   return {
@@ -101,6 +104,7 @@ export function createPageView({ index, width, height, engine, docId, actions })
       if (!layers) loadLayers(priority + 2);
       signing.show();
       annotating.show();
+      forming.show();
     },
 
     cancelPending,
@@ -117,6 +121,7 @@ export function createPageView({ index, width, height, engine, docId, actions })
       layers = null;
       signing.release();
       annotating.release();
+      forming.release();
     },
 
     // The page was edited: draw it again at its new size. The old picture stays
@@ -135,6 +140,7 @@ export function createPageView({ index, width, height, engine, docId, actions })
       layers = null;
       signing.drop(true);
       annotating.drop(true);
+      forming.drop(true);
     },
 
     // marks: [{ rects, current }] or null.

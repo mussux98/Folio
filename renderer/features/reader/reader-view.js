@@ -13,14 +13,15 @@ import { mountKeys } from './keys.js';
 // signing is { signLayer(args), openMenu() } from the signatures feature, and
 // textEditing is { editLayer(args), toggle() } from the text editing feature, and
 // annotating is { annotationLayer(args), markSelection(type), startNote(), startPen(), openShapes(anchor), openStamps(anchor) } from the annotations feature, and
+// forms is { formLayer(args) } from the forms feature, and
 // pageTools is { move, remove, copy, cut, paste } from the page tools.
-export function createReaderView({ tab, entry, engine, store, folio, start, signing, textEditing, annotating, pageTools }) {
+export function createReaderView({ tab, entry, engine, store, folio, start, signing, textEditing, annotating, forms, pageTools }) {
   const tabId = tab.id;
   const pageCount = entry.sizes.length / 2;
 
   const viewer = createViewer({
     tabId, entry, engine, store, folio, start,
-    signLayer: signing.signLayer, editLayer: textEditing.editLayer, annotationLayer: annotating.annotationLayer,
+    signLayer: signing.signLayer, editLayer: textEditing.editLayer, annotationLayer: annotating.annotationLayer, formLayer: forms.formLayer,
   });
   const find = createFind({ engine, docId: entry.docId, pageCount, viewer });
 

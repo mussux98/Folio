@@ -8,6 +8,7 @@ import { mountSession } from './features/session.js';
 import { createSignatures } from './features/signatures/signatures.js';
 import { createAnnotations } from './features/annotations/annotations.js';
 import { createTextEditing } from './features/text-edit/text-edit.js';
+import { createForms } from './features/forms/forms.js';
 import { createPageTools } from './features/page-tools/page-tools.js';
 import { runCommand } from './features/commands.js';
 
@@ -20,6 +21,7 @@ reader.setSigning(createSignatures({ store, reader, editing, folio }));
 const textEditing = createTextEditing({ reader, editing });
 reader.setTextEditing(textEditing);
 reader.setAnnotations(createAnnotations({ store, reader, editing }));
+reader.setForms(createForms({ reader, editing }));
 const pageTools = createPageTools({ store, reader, editing, folio });
 reader.setPageTools(pageTools);
 const closing = createClosing({ store, editing, folio });
