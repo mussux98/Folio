@@ -61,11 +61,12 @@ Split in two so each half is tested on its own.
 - **Done when:** text edits on typical documents (letters, invoices, forms) save cleanly and look right in other readers.
 - **Finished and tested.** An edited line keeps its font: the file's own copy when every letter is drawn with it somewhere in the document, else the same font installed on this computer (found by name in the system font folders, only if its maker allows embedding), else the closest standard font with a notice. The font list offers the document's fonts by name, then Sans, Serif and Mono, for edited lines and new text boxes. Installed fonts go in whole and Save keeps only the letters used. Spaces a subset lacks are written as gaps of the line's own space width.
 
-### 1f. Release v1.0 for Windows · **Sonnet** · ⬜
+### 1f. Release v1.0 for Windows · **Sonnet** · ✅
 - electron-builder NSIS installer, file association for `.pdf` (optional, asked at install), app icon.
 - Manual release checklist, `CHANGELOG.md`, version 1.0.0.
 - Code signing: decide later. Until then, document the SmartScreen "More info → Run anyway" step.
 - **Done when:** `Folio Setup 1.0.0.exe` installs and runs on a clean Windows machine.
+- **Built and tested here:** `npm run dist` makes the installer (per-user NSIS, asks about the PDF association); the packaged app opens and renders a PDF; silent install and uninstall work. The checklist in `RELEASE.md` still has to be run by hand on a clean machine. No auto-updates, no code signing for 1.0.
 
 ## Phase 2: Page tools · **Sonnet** · ⬜
 Rotate, delete, reorder (drag thumbnails), insert, extract, merge PDFs, split.
@@ -89,6 +90,6 @@ Mac `open-file` event, `hiddenInset` title bar, Mac menus, Apple Developer ID si
 - **Faster printing:** printing renders every page at 150 dpi before the dialog opens, so big files are slow. Ask for a page range first and render only those pages.
 
 ## Open decisions
-- **Auto-updates:** none, or an opt-in check (rule 6). Decide before 1f.
-- **Windows code signing:** Azure Trusted Signing vs a certificate vs none. Decide before 1f.
+- **Auto-updates:** none for 1.0 (decided). Revisit with an opt-in check later.
+- **Windows code signing:** none for 1.0 (decided); SmartScreen step documented in `RELEASE.md`.
 - **Commercial MuPDF license:** only if Folio is sold as closed-source.

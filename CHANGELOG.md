@@ -2,8 +2,10 @@
 
 All notable changes to Folio are documented here. Format follows Keep a Changelog; versions follow Semantic Versioning.
 
-## [Unreleased]
+## [1.0.0] - 2026-10-05
 ### Added
+- Windows installer (`Folio Setup 1.0.0.exe`, per-user, choose the install folder). At install it asks whether Folio should open PDF files by default. App icon.
+- No auto-updates and no network use: download new versions by hand.
 - Reader on MuPDF.js: continuous scroll with lazy rendering, cancellation and memory freeing; thumbnails; zoom (fit width, fit page, percentages, Ctrl+wheel); page navigation and the prototype's keyboard shortcuts.
 - Copying text keeps paragraphs together (lines of one paragraph are joined with a space), follows reading order (top to bottom, left to right), rejoins words split with a hyphen at the end of a line, and copies plain text only.
 - Find ignores case, accents and stray accent marks (cafe finds Café, esta finds esta`).

@@ -1,24 +1,63 @@
 {
-    "name":  "folio",
-    "version":  "0.1.0",
-    "description":  "Folio: a desktop PDF reader and editor",
-    "main":  "main/main.js",
-    "scripts":  {
-                    "start":  "electron .",
-                    "test":  "node --test \"tests/**/*.test.js\""
-                },
-    "keywords":  [
-
-                 ],
-    "author":  "Mussux98",
-    "license":  "AGPL-3.0-only",
-    "type":  "commonjs",
-    "devDependencies":  {
-                            "electron":  "44.5.1",
-                            "electron-builder":  "26.15.3"
-                        },
-    "dependencies":  {
-                         "mupdf":  "1.28.1"
-                     }
+  "name": "folio",
+  "version": "1.0.0",
+  "description": "Folio: a desktop PDF reader and editor",
+  "main": "main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test \"tests/**/*.test.js\"",
+    "dist": "electron-builder --win nsis"
+  },
+  "keywords": [],
+  "author": "Mussux98",
+  "license": "AGPL-3.0-only",
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "44.5.1",
+    "electron-builder": "26.15.3"
+  },
+  "dependencies": {
+    "mupdf": "1.28.1"
+  },
+  "build": {
+    "appId": "com.mussux98.folio",
+    "productName": "Folio",
+    "copyright": "Copyright (c) 2026 Mussux98",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main/**",
+      "renderer/**",
+      "shared/**",
+      "pdf-engine/**",
+      "package.json",
+      "LICENSE",
+      "!**/*.map"
+    ],
+    "asarUnpack": [
+      "node_modules/mupdf/**"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "Folio Setup ${version}.exe",
+      "license": "LICENSE",
+      "include": "build/installer.nsh",
+      "deleteAppDataOnUninstall": false
+    }
+  }
 }
-
