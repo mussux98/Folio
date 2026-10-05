@@ -1,0 +1,668 @@
+<title>Folio PDF Reader</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&family=Literata:opsz,wght@7..72,600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one-screen app. Toolbar on top, thumbnail rail on the left, pages stacked on a "desk" that scrolls. */
+:root {
+  --bg: #eef0f3; --surface: #ffffff; --fg: #1c2430; --muted: #5e6877;
+  --line: #d5dae1; --accent: #2d5b8c; --accent-fg: #ffffff; --desk: #dfe3e9;
+  --hl: rgba(255, 196, 0, .45); --danger: #a3341f;
+  --font-display: "Literata", Georgia, serif;
+  --font-ui: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #151a21; --surface: #1d232c; --fg: #e3e8ef; --muted: #96a0ae;
+    --line: #2c3440; --accent: #89b2de; --accent-fg: #0f1620; --desk: #0f1318;
+    --hl: rgba(255, 196, 0, .4); --danger: #f08a73; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #151a21; --surface: #1d232c; --fg: #e3e8ef; --muted: #96a0ae;
+  --line: #2c3440; --accent: #89b2de; --accent-fg: #0f1620; --desk: #0f1318;
+  --hl: rgba(255, 196, 0, .4); --danger: #f08a73; color-scheme: dark;
+}
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-ui); font-size: 14px; overflow: hidden; }
+.app { height: 100%; display: grid; grid-template-rows: auto 1fr; }
+
+/* Toolbar */
+.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--surface); }
+.brand { font-family: var(--font-display); font-weight: 600; font-size: 19px; letter-spacing: -.01em; }
+.doc-name { color: var(--muted); min-width: 0; flex: 1 1 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.group { display: flex; align-items: center; gap: 4px; }
+button, .btn { font: inherit; color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 6px; height: 32px; min-width: 32px; padding: 0 10px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+button:hover, .btn:hover { border-color: var(--muted); }
+button:disabled { opacity: .4; cursor: default; }
+.btn.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; }
+button.icon { padding: 0; }
+button[aria-pressed="true"] { background: var(--bg); border-color: var(--muted); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+input[type="text"], input[type="search"], select { font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; height: 32px; padding: 0 8px; }
+.page-input { width: 3.5em; text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.page-total { font-family: var(--font-mono); color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.find input { width: 11em; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* Body */
+.main { display: grid; grid-template-columns: 200px 1fr; min-height: 0; position: relative; }
+.main.no-rail { grid-template-columns: 0 1fr; }
+.rail { overflow-y: auto; border-right: 1px solid var(--line); background: var(--surface); padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+.no-rail .rail { visibility: hidden; padding: 0; border: 0; }
+.label { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+.results { display: flex; flex-direction: column; gap: 4px; }
+.results button { height: auto; padding: 6px 8px; display: block; text-align: left; width: 100%; font-size: 12.5px; line-height: 1.35; }
+.results b { font-family: var(--font-mono); font-weight: 500; color: var(--accent); margin-right: 6px; }
+.results mark { background: var(--hl); color: inherit; }
+.results .none { color: var(--muted); font-size: 12.5px; }
+.thumbs { display: flex; flex-direction: column; gap: 14px; align-items: center; }
+.thumb { all: unset; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+.thumb .frame { background: #fff; border: 2px solid transparent; border-radius: 3px; box-shadow: 0 1px 3px rgba(0,0,0,.18); display: block; overflow: hidden; }
+.thumb canvas { display: block; }
+.thumb.current .frame { border-color: var(--accent); }
+.thumb.current { color: var(--fg); }
+.thumb:focus-visible .frame { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.desk { overflow: auto; background: var(--desk); padding: 24px 16px 48px; position: relative; }
+.pages { display: flex; flex-direction: column; align-items: center; gap: 18px; width: max-content; min-width: 100%; }
+.page { position: relative; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.12), 0 6px 20px rgba(0,0,0,.10); }
+.page canvas { display: block; width: 100%; height: 100%; }
+.page .num { position: absolute; left: 100%; top: 0; margin-left: 10px; font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+
+/* PDF.js text layer, so text can be selected and copied */
+.textLayer { position: absolute; inset: 0; overflow: hidden; line-height: 1; text-size-adjust: none; forced-color-adjust: none; transform-origin: 0 0; z-index: 2; }
+.textLayer span, .textLayer br { color: transparent; position: absolute; white-space: pre; cursor: text; transform-origin: 0% 0%; }
+.textLayer span.hit { background: var(--hl); border-radius: 2px; }
+.textLayer ::selection { background: rgba(45, 91, 140, .35); }
+.textLayer .endOfContent { display: block; position: absolute; inset: 100% 0 0; z-index: -1; cursor: default; user-select: none; }
+
+/* Drop overlay and status */
+.drop { position: absolute; inset: 12px; border: 2px dashed var(--accent); border-radius: 12px; background: color-mix(in srgb, var(--desk) 85%, transparent); display: grid; place-items: center; font-size: 16px; font-weight: 600; color: var(--accent); z-index: 10; pointer-events: none; }
+.status { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; box-shadow: 0 4px 16px rgba(0,0,0,.15); z-index: 11; max-width: calc(100% - 32px); }
+.status.error { color: var(--danger); border-color: var(--danger); }
+
+@media (max-width: 800px) {
+  .main { grid-template-columns: 0 1fr; }
+  .rail { position: absolute; inset: 0 auto 0 0; width: 200px; z-index: 5; box-shadow: 4px 0 16px rgba(0,0,0,.2); }
+  .main:not(.rail-open) .rail { visibility: hidden; }
+  .doc-name { order: 10; flex-basis: 100%; }
+  .find input { width: 8em; }
+  .zoom-select { display: none; }
+}
+@media (prefers-reduced-motion: no-preference) { .desk { scroll-behavior: auto; } }
+</style>
+
+<div class="app">
+  <header class="bar">
+    <span class="brand">Folio</span>
+    <label class="btn primary" for="file">Open PDF</label>
+    <input id="file" type="file" accept="application/pdf,.pdf" class="sr">
+    <button id="rail-toggle" class="icon" aria-pressed="true" title="Show or hide page thumbnails" aria-label="Toggle thumbnails">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.5" y="2" width="13" height="12" rx="1.5"/><path d="M6 2v12"/></svg>
+    </button>
+    <span class="doc-name" id="doc-name">Sample document</span>
+    <div class="group" aria-label="Page navigation">
+      <button id="prev" class="icon" title="Previous page (←)" aria-label="Previous page">‹</button>
+      <label class="sr" for="page-input">Page number</label>
+      <input id="page-input" class="page-input" type="text" inputmode="numeric" value="1">
+      <span class="page-total" id="page-total">/ –</span>
+      <button id="next" class="icon" title="Next page (→)" aria-label="Next page">›</button>
+    </div>
+    <div class="group" aria-label="Zoom">
+      <button id="zoom-out" class="icon" title="Zoom out (−)" aria-label="Zoom out">−</button>
+      <label class="sr" for="zoom">Zoom level</label>
+      <select id="zoom" class="zoom-select">
+        <option value="width">Fit width</option>
+        <option value="page">Fit page</option>
+        <option value="0.5">50%</option>
+        <option value="0.75">75%</option>
+        <option value="1">100%</option>
+        <option value="1.25">125%</option>
+        <option value="1.5">150%</option>
+        <option value="2">200%</option>
+        <option value="3">300%</option>
+        <option value="custom" hidden></option>
+      </select>
+      <button id="zoom-in" class="icon" title="Zoom in (+)" aria-label="Zoom in">+</button>
+    </div>
+    <form class="group find" id="find-form" role="search">
+      <label class="sr" for="find">Find in document</label>
+      <input id="find" type="search" placeholder="Find text  /">
+    </form>
+  </header>
+
+  <div class="main" id="main">
+    <aside class="rail" id="rail" aria-label="Pages">
+      <section id="results-wrap" hidden>
+        <div class="label" id="results-label">Results</div>
+        <div class="results" id="results"></div>
+      </section>
+      <div class="label">Pages</div>
+      <div class="thumbs" id="thumbs"></div>
+    </aside>
+    <div class="desk" id="desk" tabindex="-1">
+      <div class="pages" id="pages"></div>
+    </div>
+    <div class="drop" id="drop" hidden>Drop a PDF to open it</div>
+    <div class="status" id="status" role="status" hidden></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+const pdfjsLib = window.pdfjsLib || window["pdfjs-dist/build/pdf"];
+pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+const $ = (id) => document.getElementById(id);
+const els = {
+  main: $("main"), desk: $("desk"), pages: $("pages"), thumbs: $("thumbs"), file: $("file"),
+  name: $("doc-name"), pageInput: $("page-input"), pageTotal: $("page-total"),
+  prev: $("prev"), next: $("next"), zoom: $("zoom"), zoomIn: $("zoom-in"), zoomOut: $("zoom-out"),
+  railToggle: $("rail-toggle"), find: $("find"), findForm: $("find-form"),
+  results: $("results"), resultsWrap: $("results-wrap"), resultsLabel: $("results-label"),
+  drop: $("drop"), status: $("status"),
+};
+const STEPS = [0.25, 0.33, 0.5, 0.67, 0.75, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4, 5];
+const state = { pdf: null, pages: [], scale: 1, mode: "width", current: 1, query: "", textCache: new Map(), loadId: 0 };
+
+/* ---------- Status ---------- */
+let statusTimer;
+function showStatus(msg, { error = false, sticky = false } = {}) {
+  clearTimeout(statusTimer);
+  els.status.textContent = msg;
+  els.status.classList.toggle("error", error);
+  els.status.hidden = false;
+  if (!sticky) statusTimer = setTimeout(() => (els.status.hidden = true), error ? 6000 : 2500);
+}
+
+/* ---------- Opening documents ---------- */
+async function openDocument(data, name) {
+  const id = ++state.loadId;
+  showStatus("Opening…", { sticky: true });
+  let pdf;
+  try {
+    pdf = await pdfjsLib.getDocument({ data }).promise;
+  } catch (err) {
+    if (id !== state.loadId) return;
+    const msg = err && err.name === "PasswordException"
+      ? "This PDF is password-protected. Folio can't open protected files yet."
+      : "This file couldn't be opened. Check that it's a valid PDF.";
+    showStatus(msg, { error: true });
+    return;
+  }
+  if (id !== state.loadId) { pdf.destroy(); return; }
+  if (state.pdf) state.pdf.destroy();
+  state.pdf = pdf;
+  state.textCache.clear();
+  state.current = 1;
+  els.name.textContent = name;
+  els.name.title = name;
+  document.title = name + " · Folio";
+
+  const pages = [];
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    if (id !== state.loadId) return;
+    pages.push({ num: i, page, base: page.getViewport({ scale: 1 }), rendered: 0, task: null, thumbDone: false });
+  }
+  state.pages = pages;
+  els.pageTotal.textContent = "/ " + pdf.numPages;
+  buildPages();
+  buildThumbs();
+  setMode(state.mode === "custom" ? "width" : state.mode);
+  els.desk.scrollTop = 0;
+  updateCurrent(1);
+  els.status.hidden = true;
+  if (state.query) runSearch(state.query);
+}
+
+function openFile(file) {
+  if (!file) return;
+  if (file.type && file.type !== "application/pdf" && !/\.pdf$/i.test(file.name)) {
+    showStatus("That isn't a PDF. Choose a file ending in .pdf.", { error: true });
+    return;
+  }
+  file.arrayBuffer().then((buf) => openDocument(new Uint8Array(buf), file.name));
+}
+
+/* ---------- Page layout and rendering ---------- */
+let pageObserver, thumbObserver;
+
+function buildPages() {
+  els.pages.replaceChildren();
+  pageObserver?.disconnect();
+  pageObserver = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      const p = state.pages[+e.target.dataset.index];
+      p.visible = e.isIntersecting;
+      if (e.isIntersecting) renderPage(p);
+    }
+  }, { root: els.desk, rootMargin: "600px 0px" });
+
+  for (const [i, p] of state.pages.entries()) {
+    const div = document.createElement("div");
+    div.className = "page";
+    div.dataset.index = i;
+    div.innerHTML = `<canvas></canvas><span class="num">${p.num}</span>`;
+    p.el = div;
+    p.canvas = div.querySelector("canvas");
+    els.pages.append(div);
+    pageObserver.observe(div);
+  }
+}
+
+function sizePages() {
+  for (const p of state.pages) {
+    p.el.style.width = Math.floor(p.base.width * state.scale) + "px";
+    p.el.style.height = Math.floor(p.base.height * state.scale) + "px";
+  }
+}
+
+async function renderPage(p) {
+  const scale = state.scale;
+  if (p.rendered === scale) return;
+  if (p.task) { p.task.cancel(); p.task = null; }
+  p.rendered = scale;
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  const viewport = p.page.getViewport({ scale });
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.floor(viewport.width * dpr);
+  canvas.height = Math.floor(viewport.height * dpr);
+  const task = p.page.render({
+    canvasContext: canvas.getContext("2d"),
+    viewport,
+    transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null,
+  });
+  p.task = task;
+  try {
+    await task.promise;
+  } catch (err) {
+    if (p.rendered === scale) p.rendered = 0;
+    return;
+  }
+  if (p.rendered !== scale) return;
+  p.task = null;
+  p.canvas.replaceWith(canvas);
+  p.canvas = canvas;
+
+  // Text layer for selection, copy and find highlighting
+  p.el.querySelector(".textLayer")?.remove();
+  const layer = document.createElement("div");
+  layer.className = "textLayer";
+  layer.style.setProperty("--scale-factor", scale);
+  p.el.append(layer);
+  try {
+    const text = await getText(p);
+    if (p.rendered !== scale) return;
+    await pdfjsLib.renderTextLayer({ textContentSource: text.content, container: layer, viewport }).promise;
+    highlightLayer(layer);
+  } catch (_) { /* text layer is optional */ }
+}
+
+function rerenderVisible() {
+  for (const p of state.pages) {
+    if (p.visible) renderPage(p);
+  }
+}
+
+/* ---------- Thumbnails ---------- */
+const THUMB_W = 140;
+function buildThumbs() {
+  els.thumbs.replaceChildren();
+  thumbObserver?.disconnect();
+  thumbObserver = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) renderThumb(state.pages[+e.target.dataset.index]);
+  }, { root: els.main.querySelector(".rail"), rootMargin: "300px 0px" });
+
+  for (const [i, p] of state.pages.entries()) {
+    const s = THUMB_W / p.base.width;
+    const btn = document.createElement("button");
+    btn.className = "thumb";
+    btn.dataset.index = i;
+    btn.setAttribute("aria-label", "Go to page " + p.num);
+    btn.innerHTML = `<span class="frame" style="width:${THUMB_W}px;height:${Math.round(p.base.height * s)}px"></span><span>${p.num}</span>`;
+    btn.addEventListener("click", () => { goTo(p.num); if (matchMedia("(max-width: 800px)").matches) toggleRail(false); });
+    p.thumb = btn;
+    els.thumbs.append(btn);
+    thumbObserver.observe(btn);
+  }
+}
+
+async function renderThumb(p) {
+  if (p.thumbDone) return;
+  p.thumbDone = true;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const viewport = p.page.getViewport({ scale: THUMB_W / p.base.width });
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.floor(viewport.width * dpr);
+  canvas.height = Math.floor(viewport.height * dpr);
+  canvas.style.width = Math.floor(viewport.width) + "px";
+  canvas.style.height = Math.floor(viewport.height) + "px";
+  try {
+    await p.page.render({ canvasContext: canvas.getContext("2d"), viewport, transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null }).promise;
+    p.thumb.querySelector(".frame").replaceChildren(canvas);
+  } catch (_) { p.thumbDone = false; }
+}
+
+/* ---------- Navigation ---------- */
+function goTo(n) {
+  if (!state.pages.length) return;
+  n = Math.max(1, Math.min(state.pages.length, n));
+  const el = state.pages[n - 1].el;
+  els.desk.scrollTop = el.offsetTop - 16;
+  updateCurrent(n);
+}
+
+function updateCurrent(n) {
+  if (state.pages[state.current - 1]?.thumb) state.pages[state.current - 1].thumb.classList.remove("current");
+  state.current = n;
+  const t = state.pages[n - 1]?.thumb;
+  if (t) {
+    t.classList.add("current");
+    const rail = t.closest(".rail");
+    const top = t.offsetTop, bottom = top + t.offsetHeight;
+    if (top < rail.scrollTop || bottom > rail.scrollTop + rail.clientHeight) rail.scrollTop = top - 40;
+  }
+  if (document.activeElement !== els.pageInput) els.pageInput.value = n;
+  els.prev.disabled = n <= 1;
+  els.next.disabled = n >= state.pages.length;
+}
+
+let scrollRaf = 0;
+els.desk.addEventListener("scroll", () => {
+  cancelAnimationFrame(scrollRaf);
+  scrollRaf = requestAnimationFrame(() => {
+    const mid = els.desk.scrollTop + els.desk.clientHeight * 0.3;
+    let n = 1;
+    for (const p of state.pages) {
+      if (p.el.offsetTop <= mid) n = p.num; else break;
+    }
+    if (n !== state.current) updateCurrent(n);
+  });
+});
+
+/* ---------- Zoom ---------- */
+function fitScale(mode) {
+  const p = state.pages[state.current - 1] || state.pages[0];
+  if (!p) return 1;
+  const availW = els.desk.clientWidth - 32 - 40; // padding + room for page numbers
+  const availH = els.desk.clientHeight - 48;
+  const w = availW / p.base.width;
+  return mode === "page" ? Math.min(w, availH / p.base.height) : w;
+}
+
+function applyScale(scale) {
+  if (!state.pages.length) { state.scale = scale; return; }
+  const anchor = state.current;
+  const cur = state.pages[anchor - 1].el;
+  const ratio = (els.desk.scrollTop - cur.offsetTop) / (cur.offsetHeight || 1);
+  state.scale = Math.max(0.1, Math.min(6, scale));
+  sizePages();
+  els.desk.scrollTop = cur.offsetTop + ratio * cur.offsetHeight;
+  rerenderVisible();
+}
+
+function setMode(mode) {
+  state.mode = mode;
+  if (mode === "width" || mode === "page") {
+    els.zoom.value = mode;
+    applyScale(fitScale(mode));
+  } else {
+    const s = +mode;
+    const opt = [...els.zoom.options].find((o) => +o.value === s);
+    if (opt) els.zoom.value = opt.value;
+    else {
+      const custom = els.zoom.querySelector('option[value="custom"]');
+      custom.textContent = Math.round(s * 100) + "%";
+      els.zoom.value = "custom";
+    }
+    applyScale(s);
+  }
+}
+
+function step(dir) {
+  const s = state.scale;
+  const next = dir > 0 ? STEPS.find((x) => x > s + 0.001) : [...STEPS].reverse().find((x) => x < s - 0.001);
+  if (next) setMode(String(next));
+}
+
+els.zoom.addEventListener("change", () => { if (els.zoom.value !== "custom") setMode(els.zoom.value); });
+els.zoomIn.addEventListener("click", () => step(1));
+els.zoomOut.addEventListener("click", () => step(-1));
+let resizeTimer;
+new ResizeObserver(() => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => { if (state.mode === "width" || state.mode === "page") applyScale(fitScale(state.mode)); }, 120);
+}).observe(els.desk);
+
+// Ctrl/⌘ + wheel zooms the document rather than the page
+els.desk.addEventListener("wheel", (e) => {
+  if (!(e.ctrlKey || e.metaKey)) return;
+  e.preventDefault();
+  step(e.deltaY < 0 ? 1 : -1);
+}, { passive: false });
+
+/* ---------- Find ---------- */
+async function getText(p) {
+  if (state.textCache.has(p.num)) return state.textCache.get(p.num);
+  const content = await p.page.getTextContent();
+  const str = content.items.map((it) => it.str + (it.hasEOL ? "\n" : "")).join("");
+  const entry = { content, str };
+  state.textCache.set(p.num, entry);
+  return entry;
+}
+
+function escapeHtml(s) { return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+async function runSearch(q) {
+  state.query = q.trim();
+  document.querySelectorAll(".textLayer").forEach(highlightLayer);
+  if (!state.query) { els.resultsWrap.hidden = true; return; }
+  toggleRail(true);
+  els.resultsWrap.hidden = false;
+  els.results.innerHTML = '<div class="none">Searching…</div>';
+  const needle = state.query.toLowerCase();
+  const hits = [];
+  let total = 0;
+  for (const p of state.pages) {
+    const { str } = await getText(p);
+    const hay = str.toLowerCase();
+    let idx = hay.indexOf(needle), count = 0, first = -1;
+    while (idx !== -1) { if (first < 0) first = idx; count++; idx = hay.indexOf(needle, idx + needle.length); }
+    if (count) {
+      total += count;
+      const start = Math.max(0, first - 30), end = Math.min(str.length, first + needle.length + 40);
+      const before = escapeHtml(str.slice(start, first).replace(/\s+/g, " "));
+      const match = escapeHtml(str.slice(first, first + needle.length));
+      const after = escapeHtml(str.slice(first + needle.length, end).replace(/\s+/g, " "));
+      hits.push({ num: p.num, count, html: `${start > 0 ? "…" : ""}${before}<mark>${match}</mark>${after}…` });
+    }
+  }
+  if (q.trim() !== state.query) return;
+  els.resultsLabel.textContent = total ? `${total} match${total === 1 ? "" : "es"} on ${hits.length} page${hits.length === 1 ? "" : "s"}` : "Results";
+  if (!hits.length) {
+    els.results.innerHTML = `<div class="none">No matches for “${escapeHtml(state.query)}”.</div>`;
+    return;
+  }
+  els.results.replaceChildren(...hits.map((h) => {
+    const b = document.createElement("button");
+    b.innerHTML = `<b>p.${h.num}</b>${h.html}`;
+    b.addEventListener("click", () => { goTo(h.num); if (matchMedia("(max-width: 800px)").matches) toggleRail(false); });
+    return b;
+  }));
+  goTo(hits[0].num);
+}
+
+function highlightLayer(layer) {
+  const needle = state.query.toLowerCase();
+  for (const span of layer.querySelectorAll("span")) {
+    span.classList.toggle("hit", !!needle && span.textContent.toLowerCase().includes(needle));
+  }
+}
+
+els.findForm.addEventListener("submit", (e) => { e.preventDefault(); runSearch(els.find.value); });
+els.find.addEventListener("search", () => { if (!els.find.value) runSearch(""); });
+
+/* ---------- Thumbnail rail ---------- */
+function toggleRail(force) {
+  const narrow = matchMedia("(max-width: 800px)").matches;
+  if (narrow) {
+    const open = force ?? !els.main.classList.contains("rail-open");
+    els.main.classList.toggle("rail-open", open);
+    els.railToggle.setAttribute("aria-pressed", open);
+  } else {
+    const show = force ?? els.main.classList.contains("no-rail");
+    els.main.classList.toggle("no-rail", !show);
+    els.railToggle.setAttribute("aria-pressed", show);
+  }
+}
+els.railToggle.addEventListener("click", () => toggleRail());
+if (matchMedia("(max-width: 800px)").matches) els.railToggle.setAttribute("aria-pressed", "false");
+
+/* ---------- Controls ---------- */
+els.prev.addEventListener("click", () => goTo(state.current - 1));
+els.next.addEventListener("click", () => goTo(state.current + 1));
+els.pageInput.addEventListener("change", () => {
+  const n = parseInt(els.pageInput.value, 10);
+  if (Number.isFinite(n)) goTo(n); else els.pageInput.value = state.current;
+});
+els.pageInput.addEventListener("keydown", (e) => { if (e.key === "Enter") { els.pageInput.blur(); } });
+els.pageInput.addEventListener("blur", () => (els.pageInput.value = state.current));
+els.file.addEventListener("change", () => { openFile(els.file.files[0]); els.file.value = ""; });
+
+document.addEventListener("keydown", (e) => {
+  const t = e.target;
+  if (t.matches && t.matches("input, select, textarea")) {
+    if (e.key === "Escape") t.blur();
+    return;
+  }
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  switch (e.key) {
+    case "ArrowRight": case "PageDown": case "j": goTo(state.current + 1); break;
+    case "ArrowLeft": case "PageUp": case "k": goTo(state.current - 1); break;
+    case "Home": goTo(1); break;
+    case "End": goTo(state.pages.length); break;
+    case "+": case "=": step(1); break;
+    case "-": step(-1); break;
+    case "0": setMode("width"); break;
+    case "/": els.find.focus(); break;
+    case "t": toggleRail(); break;
+    default: return;
+  }
+  e.preventDefault();
+});
+
+/* ---------- Drag and drop ---------- */
+let dragDepth = 0;
+window.addEventListener("dragenter", (e) => { if ([...(e.dataTransfer?.types || [])].includes("Files")) { dragDepth++; els.drop.hidden = false; } });
+window.addEventListener("dragleave", () => { dragDepth = Math.max(0, dragDepth - 1); if (!dragDepth) els.drop.hidden = true; });
+window.addEventListener("dragover", (e) => e.preventDefault());
+window.addEventListener("drop", (e) => {
+  e.preventDefault();
+  dragDepth = 0;
+  els.drop.hidden = true;
+  const file = [...(e.dataTransfer?.files || [])].find((f) => f.type === "application/pdf" || /\.pdf$/i.test(f.name)) || e.dataTransfer?.files?.[0];
+  openFile(file);
+});
+
+/* ---------- Built-in sample PDF, so the reader opens with something to read ---------- */
+function buildSamplePdf(pages) {
+  const esc = (s) => s.replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
+  const objs = [];
+  const add = (body) => { objs.push(body); return objs.length; };
+  const catalog = add(null), pagesObj = add(null);
+  const fonts = {
+    H: add("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>"),
+    T: add("<< /Type /Font /Subtype /Type1 /BaseFont /Times-Roman >>"),
+    C: add("<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>"),
+  };
+  const res = `/Resources << /Font << /H ${fonts.H} 0 R /T ${fonts.T} 0 R /C ${fonts.C} 0 R >> >>`;
+  const kids = [];
+  for (const lines of pages) {
+    let s = "";
+    for (const l of lines) {
+      if (l.rule) { s += `0.75 0.78 0.82 RG 0.8 w ${l.x} ${l.y} m ${l.x2} ${l.y} l S\n`; continue; }
+      const c = l.color || "0.11 0.14 0.19";
+      s += `BT ${c} rg /${l.f} ${l.s} Tf ${l.x} ${l.y} Td (${esc(l.t)}) Tj ET\n`;
+    }
+    const content = add(`<< /Length ${s.length} >>\nstream\n${s}endstream`);
+    kids.push(add(`<< /Type /Page /Parent ${pagesObj} 0 R /MediaBox [0 0 612 792] ${res} /Contents ${content} 0 R >>`));
+  }
+  objs[catalog - 1] = `<< /Type /Catalog /Pages ${pagesObj} 0 R >>`;
+  objs[pagesObj - 1] = `<< /Type /Pages /Kids [${kids.map((k) => k + " 0 R").join(" ")}] /Count ${kids.length} >>`;
+  let out = "%PDF-1.4\n";
+  const offsets = [];
+  objs.forEach((body, i) => { offsets.push(out.length); out += `${i + 1} 0 obj\n${body}\nendobj\n`; });
+  const xref = out.length;
+  out += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n` + offsets.map((o) => String(o).padStart(10, "0") + " 00000 n \n").join("");
+  out += `trailer\n<< /Size ${objs.length + 1} /Root ${catalog} 0 R >>\nstartxref\n${xref}\n%%EOF`;
+  return Uint8Array.from(out, (ch) => ch.charCodeAt(0));
+}
+
+function para(text, x, y, { f = "T", s = 12, lead = 17, width = 78 } = {}) {
+  const words = text.split(" "), lines = [];
+  let line = "";
+  for (const w of words) {
+    if ((line + " " + w).trim().length > width) { lines.push(line); line = w; } else line = (line + " " + w).trim();
+  }
+  if (line) lines.push(line);
+  return lines.map((t, i) => ({ f, s, x, y: y - i * lead, t }));
+}
+
+const MUTED = "0.37 0.41 0.47", ACCENT = "0.18 0.36 0.55";
+const sample = buildSamplePdf([
+  [
+    { f: "H", s: 10, x: 72, y: 730, t: "FOLIO  /  SAMPLE DOCUMENT", color: MUTED },
+    { f: "H", s: 34, x: 72, y: 680, t: "Welcome to Folio" },
+    ...para("Folio is a PDF reader that runs entirely in your browser. Open a file with the Open PDF button, or drag one anywhere onto this window.", 72, 640, { s: 14, lead: 20, width: 70 }),
+    { rule: true, x: 72, x2: 540, y: 590 },
+    { f: "H", s: 14, x: 72, y: 560, t: "Your files stay on your device", color: ACCENT },
+    ...para("Folio reads PDFs locally with Mozilla's PDF.js. Nothing you open is uploaded anywhere, so it is safe to use with private documents such as contracts, statements and medical letters.", 72, 536),
+    { f: "H", s: 14, x: 72, y: 460, t: "What you can do", color: ACCENT },
+    ...para("Scroll through every page in one continuous column. Jump to a page from the thumbnails on the left or by typing its number in the toolbar.", 72, 436),
+    ...para("Zoom to fit the width, fit the whole page, or pick a percentage. Ctrl plus the scroll wheel zooms too.", 72, 384),
+    ...para("Select and copy text straight from the page. Use Find to list every page that mentions a word and highlight it.", 72, 349),
+    { f: "T", s: 11, x: 72, y: 90, t: "Try it: type  invoice  into Find in the toolbar and press Enter.", color: MUTED },
+    { f: "C", s: 9, x: 520, y: 50, t: "1 / 3", color: MUTED },
+  ],
+  [
+    { f: "H", s: 10, x: 72, y: 730, t: "FOLIO  /  KEYBOARD SHORTCUTS", color: MUTED },
+    { f: "H", s: 26, x: 72, y: 686, t: "Shortcuts" },
+    ...[
+      ["Right arrow, J, Page Down", "Next page"],
+      ["Left arrow, K, Page Up", "Previous page"],
+      ["Home / End", "First / last page"],
+      ["+ / -", "Zoom in / out"],
+      ["0", "Fit to width"],
+      ["/", "Jump to Find"],
+      ["T", "Show or hide thumbnails"],
+      ["Esc", "Leave a text field"],
+    ].flatMap(([k, v], i) => [
+      { f: "C", s: 11, x: 72, y: 640 - i * 30, t: k, color: ACCENT },
+      { f: "T", s: 12, x: 300, y: 640 - i * 30, t: v },
+      { rule: true, x: 72, x2: 540, y: 630 - i * 30 },
+    ]),
+    { f: "C", s: 9, x: 520, y: 50, t: "2 / 3", color: MUTED },
+  ],
+  [
+    { f: "H", s: 10, x: 72, y: 730, t: "FOLIO  /  EXAMPLE PAGE", color: MUTED },
+    { f: "H", s: 26, x: 72, y: 686, t: "Invoice No. 2026-0418" },
+    { f: "T", s: 12, x: 72, y: 656, t: "Example data for testing Find. Issued 5 October 2026.", color: MUTED },
+    { f: "H", s: 11, x: 72, y: 610, t: "Item" }, { f: "H", s: 11, x: 380, y: 610, t: "Qty" }, { f: "H", s: 11, x: 470, y: 610, t: "Amount" },
+    { rule: true, x: 72, x2: 540, y: 600 },
+    ...[["Bookbinding, linen spine", "2", "$84.00"], ["Archival paper, A4 ream", "5", "$62.50"], ["Letterpress proofing", "1", "$140.00"]]
+      .flatMap(([a, b, c], i) => [
+        { f: "T", s: 12, x: 72, y: 576 - i * 26, t: a },
+        { f: "C", s: 11, x: 386, y: 576 - i * 26, t: b },
+        { f: "C", s: 11, x: 470, y: 576 - i * 26, t: c },
+      ]),
+    { rule: true, x: 72, x2: 540, y: 510 },
+    { f: "H", s: 12, x: 380, y: 488, t: "Total" }, { f: "C", s: 12, x: 470, y: 488, t: "$286.50" },
+    ...para("Payment is due within 30 days of the invoice date. This invoice is sample content bundled with Folio.", 72, 420, { s: 11, lead: 16, width: 84 }),
+    { f: "C", s: 9, x: 520, y: 50, t: "3 / 3", color: MUTED },
+  ],
+]);
+
+openDocument(sample, "Welcome to Folio.pdf");
+</script>

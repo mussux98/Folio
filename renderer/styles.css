@@ -1,0 +1,3 @@
+html, body { height: 100%; margin: 0; }
+body { background: #1e1e1e; color: #ddd; font-family: system-ui, sans-serif; }
+#app { height: 100%; }
