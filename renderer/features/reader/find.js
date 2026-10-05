@@ -51,7 +51,8 @@ export function createFind({ engine, docId, pageCount, viewer }) {
     state.searching = false;
   }
 
-  async function search(query) {
+  // quiet: keep the view where it is (a new search scrolls to the first hit).
+  async function search(query, { quiet = false } = {}) {
     stop();
     state = fresh(query.trim());
     byPage = new Map();
@@ -77,7 +78,7 @@ export function createFind({ engine, docId, pageCount, viewer }) {
       state.scanned = page + 1;
       if (found.length) {
         addHits(page, found);
-        if (state.current === -1) select(0);
+        if (state.current === -1) select(0, { scroll: !quiet });
         else viewer.setHighlights(byPage);
       }
       if (found.length || state.scanned % EMIT_EVERY === 0) emit();
@@ -89,6 +90,8 @@ export function createFind({ engine, docId, pageCount, viewer }) {
   return {
     get state() { return state; },
     search,
+    // After an edit the hits may have moved, so the same search runs again.
+    refresh: () => { if (state.query) search(state.query, { quiet: true }); },
     next: () => select(state.current + 1),
     previous: () => select(state.current - 1),
     goTo: (index) => select(index),

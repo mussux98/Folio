@@ -20,6 +20,9 @@ function buildMenu({ recent, actions }) {
         { label: 'Open…', accelerator: 'CmdOrCtrl+O', click: actions.openDialog },
         { label: 'Open Recent', submenu: recentItems },
         { type: 'separator' },
+        { label: 'Save', accelerator: 'CmdOrCtrl+S', click: () => actions.command('save') },
+        { label: 'Save As…', accelerator: 'CmdOrCtrl+Shift+S', click: () => actions.command('save-as') },
+        { type: 'separator' },
         { label: 'Print…', accelerator: 'CmdOrCtrl+P', click: () => actions.command('print') },
         { type: 'separator' },
         { label: 'Close Tab', accelerator: 'CmdOrCtrl+W', click: () => actions.command('close-tab') },
@@ -30,6 +33,10 @@ function buildMenu({ recent, actions }) {
     {
       label: 'Edit',
       submenu: [
+        { label: 'Undo', accelerator: 'CmdOrCtrl+Z', click: () => actions.command('undo') },
+        { label: 'Redo', accelerator: 'CmdOrCtrl+Y', click: () => actions.command('redo') },
+        { label: 'Redo', accelerator: 'CmdOrCtrl+Shift+Z', visible: false, click: () => actions.command('redo') },
+        { type: 'separator' },
         { role: 'cut' },
         { role: 'copy' },
         { role: 'paste' },
@@ -39,6 +46,9 @@ function buildMenu({ recent, actions }) {
         { label: 'Find…', accelerator: 'CmdOrCtrl+F', click: () => actions.command('find') },
         { label: 'Find Next', accelerator: 'F3', click: () => actions.command('find-next') },
         { label: 'Find Previous', accelerator: 'Shift+F3', click: () => actions.command('find-previous') },
+        { type: 'separator' },
+        { label: 'Rotate Page Right', accelerator: 'CmdOrCtrl+R', click: () => actions.command('rotate-right') },
+        { label: 'Rotate Page Left', accelerator: 'CmdOrCtrl+Shift+R', click: () => actions.command('rotate-left') },
       ],
     },
     {

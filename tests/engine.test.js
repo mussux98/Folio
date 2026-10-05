@@ -115,3 +115,25 @@ test('lines of one paragraph share a block, separate paragraphs do not', async (
   const apart = engine.openDocument(makePdf([{ text: 'top', size: [300, 400] }, 'x'])).id;
   assert.strictEqual(typeof engine.getText(apart, 0)[0].block, 'number');
 });
+
+test('rotating a page changes its size, and turning it back restores it', async () => {
+  const { engine, makePdf } = await load();
+  const { id } = engine.openDocument(makePdf([{ text: 'a', size: [300, 400], rotate: 90 }]));
+  assert.deepStrictEqual(engine.rotatePage(id, 0, 90), [300, 400]);
+  assert.deepStrictEqual(engine.rotatePage(id, 0, 90), [400, 300]);
+  assert.deepStrictEqual(engine.rotatePage(id, 0, -180), [400, 300]);
+  assert.deepStrictEqual([...engine.pageSizes(id)], [400, 300]);
+});
+
+test('a saved document keeps its edits when opened again, after any number of saves', async () => {
+  const { engine, makePdf } = await load();
+  const { id } = engine.openDocument(makePdf(['one', 'two']));
+  engine.rotatePage(id, 1, 90);
+  engine.save(id);
+  engine.rotatePage(id, 1, 90);
+  const reopened = engine.openDocument(engine.save(id));
+  assert.strictEqual(reopened.pageCount, 2);
+  assert.deepStrictEqual([...engine.pageSizes(reopened.id)], [300, 400, 300, 400]);
+  assert.strictEqual(engine.getText(reopened.id, 1)[0].text.trim(), 'two');
+  assert.deepStrictEqual(engine.pageTransform(reopened.id, 1).map((v) => Math.round(v) || 0), [-1, 0, 0, 1, 300, 0]);
+});

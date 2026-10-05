@@ -86,6 +86,10 @@ export function createEngineClient() {
     getLinks: (id, index, priority) => request('getLinks', [id, index], { priority }),
     renderPage: (id, index, scale, priority) => request('renderPage', [id, index, scale], { priority }),
     searchPage: (id, index, needle) => request('searchPage', [id, index, needle], { priority: 5 }),
+    // Edits and saving go ahead of drawing.
+    pageTransform: (id, index) => call('pageTransform', [id, index], { priority: -1 }),
+    rotatePage: (id, index, degrees) => call('rotatePage', [id, index, degrees], { priority: -1 }),
+    save: (id) => call('save', [id], { priority: -1 }),
     terminate: () => worker.terminate(),
   };
 }

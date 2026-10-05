@@ -29,12 +29,13 @@ Status key: ⬜ not started · 🟨 in progress · ✅ done
 - **Done when:** it matches or beats `prototype/folio.html` and stays smooth on a 1,000-page file.
 - **Finished and tested on real PDFs.** Print speed is parked under "Later improvements".
 
-### 1c. Editing foundation · **Opus** · ⬜
+### 1c. Editing foundation · **Opus** · ✅
 - Command pattern with undo/redo (Ctrl+Z / Ctrl+Y), per tab.
 - Dirty flag, "Save changes?" on closing a tab, window or the app (rule 15).
 - Save and Save As with atomic writes (rule 14).
 - Coordinate utilities, screen ↔ PDF points (rule 21), with tests on rotated and cropped pages.
 - **Done when:** a test edit can be undone and redone, saved safely, and survives reopening.
+- **Finished and tested.** The test edit is page rotation (Edit → Rotate Page, Ctrl+R / Ctrl+Shift+R). Save rewrites the whole file: a second incremental save from MuPDF produces a broken file.
 
 ### 1d. Signatures · **Sonnet** · ⬜
 - Create a signature by drawing (mouse, pen or touch, with smoothing) or by importing an image (PNG/JPG, with optional background removal for white).

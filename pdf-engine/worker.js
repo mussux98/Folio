@@ -7,7 +7,7 @@ const engine = createEngine();
 // Big results are handed over instead of copied.
 function transferables(method, result) {
   if (method === 'renderPage') return [result.pixels.buffer];
-  if (method === 'pageSizes') return [result.buffer];
+  if (method === 'pageSizes' || method === 'save') return [result.buffer];
   return [];
 }
 

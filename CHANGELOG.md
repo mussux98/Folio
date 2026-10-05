@@ -13,6 +13,9 @@ All notable changes to Folio are documented here. Format follows Keep a Changelo
 - Open files from the dialog, drag-and-drop, the command line, "Open with" and Open Recent; a second launch adds tabs to the running window.
 - Native menu (File, Edit, View, Help) and a right-click menu with Cut, Copy, Paste and Select All.
 - Folio remembers window size and position, open tabs, the active tab, and the page and zoom of each file.
+- Rotate a page left or right, with undo and redo (Ctrl+Z, Ctrl+Y) for each tab.
+- Save and Save As. The file is written to a temp file first and then swapped in, so a failed save never damages the original; a file in use or read-only gives a clear message.
+- Unsaved tabs show a dot, and closing a tab, the window or the app asks to save changes.
 
 ## [0.1.0] - 2026-10-05
 ### Added

@@ -192,3 +192,82 @@ test('opening and closing tabs keeps the sidebar state', async () => {
   store.closeTab(ids[0]);
   assert.deepStrictEqual(store.getState().sidebar, { open: false, panel: 'outline' });
 });
+
+// Edits as the store sees them: anything with a name will do.
+const edit = (name) => ({ name });
+const history = (store) => {
+  const { done, undone, saved } = store.getState().tabs[0].history;
+  return { done: done.map((c) => c.name), undone: undone.map((c) => c.name), saved };
+};
+const dirty = (store) => store.getState().tabs[0].dirty;
+
+test('a new tab has no history and is not dirty', async () => {
+  const { store } = await storeWith('a.pdf');
+  assert.deepStrictEqual(history(store), { done: [], undone: [], saved: 0 });
+  assert.strictEqual(dirty(store), false);
+});
+
+test('an edit makes the tab dirty, and undoing it makes it clean again', async () => {
+  const { store, ids } = await storeWith('a.pdf');
+  store.recordEdit(ids[0], edit('one'));
+  assert.strictEqual(dirty(store), true);
+  store.stepHistory(ids[0], -1);
+  assert.deepStrictEqual(history(store), { done: [], undone: ['one'], saved: 0 });
+  assert.strictEqual(dirty(store), false);
+  store.stepHistory(ids[0], 1);
+  assert.deepStrictEqual(history(store).done, ['one']);
+  assert.strictEqual(dirty(store), true);
+});
+
+test('a new edit clears what could be redone', async () => {
+  const { store, ids } = await storeWith('a.pdf');
+  store.recordEdit(ids[0], edit('one'));
+  store.recordEdit(ids[0], edit('two'));
+  store.stepHistory(ids[0], -1);
+  store.recordEdit(ids[0], edit('three'));
+  assert.deepStrictEqual(history(store), { done: ['one', 'three'], undone: [], saved: 0 });
+});
+
+test('saving makes the tab clean; undoing past the save makes it dirty', async () => {
+  const { store, ids } = await storeWith('a.pdf');
+  store.recordEdit(ids[0], edit('one'));
+  store.markSaved(ids[0]);
+  assert.strictEqual(dirty(store), false);
+  store.stepHistory(ids[0], -1);
+  assert.strictEqual(dirty(store), true);
+  store.stepHistory(ids[0], 1);
+  assert.strictEqual(dirty(store), false);
+});
+
+test('once the saved state is replaced by a new edit, it can no longer be reached', async () => {
+  const { store, ids } = await storeWith('a.pdf');
+  store.recordEdit(ids[0], edit('one'));
+  store.markSaved(ids[0]);
+  store.stepHistory(ids[0], -1);
+  store.recordEdit(ids[0], edit('two'));
+  store.stepHistory(ids[0], -1);
+  assert.strictEqual(history(store).saved, -1);
+  assert.strictEqual(dirty(store), true);
+});
+
+test('undo and redo with nothing to step over change nothing', async () => {
+  const { store, ids } = await storeWith('a.pdf');
+  const before = store.getState();
+  store.stepHistory(ids[0], -1);
+  store.stepHistory(ids[0], 1);
+  assert.strictEqual(store.getState(), before);
+});
+
+test('each tab keeps its own history', async () => {
+  const { store, ids } = await storeWith('a.pdf', 'b.pdf');
+  store.recordEdit(ids[1], edit('one'));
+  const [a, b] = store.getState().tabs;
+  assert.deepStrictEqual([a.dirty, b.dirty], [false, true]);
+});
+
+test('Save As moves the tab to the new file', async () => {
+  const { store, ids } = await storeWith('a.pdf');
+  store.renameTab(ids[0], 'D:\\new\\copy.pdf');
+  const [tab] = store.getState().tabs;
+  assert.deepStrictEqual([tab.path, tab.name], ['D:\\new\\copy.pdf', 'copy.pdf']);
+});

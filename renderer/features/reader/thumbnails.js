@@ -9,38 +9,48 @@ const KEEP = 3;
 // The page thumbnails in the sidebar. Like the main scroll, only the ones near
 // the view are drawn; the rest are empty boxes of the right size.
 export function createThumbnails({ entry, engine, store, tabId, viewer }) {
-  const { docId, sizes } = entry;
+  const { docId } = entry;
+  let sizes = entry.sizes;
   const count = sizes.length / 2;
 
   // Each thumbnail is THUMB_WIDTH wide, with room for its number underneath.
-  const boxes = new Float32Array(count * 2);
-  for (let i = 0; i < count; i++) {
-    boxes[i * 2] = THUMB_WIDTH;
-    boxes[i * 2 + 1] = (sizes[i * 2 + 1] * THUMB_WIDTH) / sizes[i * 2] + LABEL_HEIGHT;
+  function layOut() {
+    const boxes = new Float32Array(count * 2);
+    for (let i = 0; i < count; i++) {
+      boxes[i * 2] = THUMB_WIDTH;
+      boxes[i * 2 + 1] = (sizes[i * 2 + 1] * THUMB_WIDTH) / sizes[i * 2] + LABEL_HEIGHT;
+    }
+    return computeLayout(boxes, 1);
   }
-  const layout = computeLayout(boxes, 1);
+  let layout = layOut();
 
   const scroller = document.createElement('div');
   scroller.className = 'thumbs';
   const surface = document.createElement('div');
   surface.className = 'thumbs-surface';
-  surface.style.height = `${layout.total}px`;
   scroller.append(surface);
 
   const items = Array.from({ length: count }, (_, i) => {
     const el = document.createElement('button');
     el.className = 'thumb';
-    el.style.top = `${layout.tops[i]}px`;
-    el.style.height = `${layout.heights[i]}px`;
     el.setAttribute('aria-label', `Page ${i + 1}`);
     const label = document.createElement('span');
     label.className = 'thumb-label';
     label.textContent = String(i + 1);
     el.append(label);
     el.addEventListener('click', () => viewer.goToPage(i + 1));
-    return { el, canvas: null, request: null };
+    return { el, canvas: null, request: null, stale: false };
   });
   surface.append(...items.map((item) => item.el));
+
+  function place() {
+    surface.style.height = `${layout.total}px`;
+    items.forEach((item, i) => {
+      item.el.style.top = `${layout.tops[i]}px`;
+      item.el.style.height = `${layout.heights[i]}px`;
+    });
+  }
+  place();
 
   async function draw(item, i) {
     const scale = (THUMB_WIDTH / sizes[i * 2]) * (window.devicePixelRatio || 1);
@@ -52,11 +62,18 @@ export function createThumbnails({ entry, engine, store, tabId, viewer }) {
       canvas.width = width;
       canvas.height = height;
       canvas.getContext('2d').putImageData(new ImageData(pixels, width, height), 0, 0);
+      // An edited page keeps its old picture until this one is ready.
+      item.canvas?.remove?.();
       item.canvas = canvas;
+      item.stale = false;
       item.el.prepend(canvas);
     } catch (err) {
       // A page that failed stays blank instead of being retried on every scroll.
-      if (!isCancelled(err)) item.canvas = false;
+      if (!isCancelled(err)) {
+        item.canvas?.remove?.();
+        item.canvas = false;
+        item.stale = false;
+      }
     } finally {
       item.request = null;
     }
@@ -78,7 +95,7 @@ export function createThumbnails({ entry, engine, store, tabId, viewer }) {
     items.forEach((item, i) => {
       if (i < keep.first || i > keep.last) free(item);
       else if (i >= near.first && i <= near.last) {
-        if (item.canvas === null && !item.request) draw(item, i);
+        if ((item.canvas === null || item.stale) && !item.request) draw(item, i);
       } else item.request?.cancel();
     });
   }
@@ -112,6 +129,18 @@ export function createThumbnails({ entry, engine, store, tabId, viewer }) {
     // Called when the panel becomes visible, once it has a size.
     refresh() {
       showCurrent({ scrollTo: true });
+      scheduleUpdate();
+    },
+    // An edit changed these pages; entry.sizes has their new sizes.
+    pagesChanged(pages) {
+      sizes = entry.sizes;
+      layout = layOut();
+      place();
+      for (const i of pages) {
+        items[i].request?.cancel();
+        items[i].stale = true;
+      }
+      showCurrent({ scrollTo: false });
       scheduleUpdate();
     },
     destroy() {

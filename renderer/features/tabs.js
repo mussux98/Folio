@@ -1,8 +1,9 @@
 // The tab bar: click to switch, x or middle-click to close, drag to reorder.
+// closeTab(id) asks about unsaved changes first.
 
 const TAB_DRAG_TYPE = 'application/x-folio-tab';
 
-export function mountTabs(container, store, folio) {
+export function mountTabs(container, { store, folio, closeTab }) {
   const list = document.createElement('div');
   list.className = 'tab-list';
   list.setAttribute('role', 'tablist');
@@ -23,10 +24,10 @@ export function mountTabs(container, store, folio) {
 
   function buildTab(tab, active) {
     const el = document.createElement('div');
-    el.className = active ? 'tab active' : 'tab';
+    el.className = `tab${active ? ' active' : ''}${tab.dirty ? ' dirty' : ''}`;
     el.dataset.id = tab.id;
     el.draggable = true;
-    el.title = tab.path;
+    el.title = tab.dirty ? `${tab.path} (not saved)` : tab.path;
     el.setAttribute('role', 'tab');
     el.setAttribute('aria-selected', String(active));
 
@@ -49,7 +50,7 @@ export function mountTabs(container, store, folio) {
   list.addEventListener('click', (event) => {
     const id = tabIdFrom(event);
     if (!id) return;
-    if (event.target.closest('.tab-close')) store.closeTab(id);
+    if (event.target.closest('.tab-close')) closeTab(id);
     else store.activateTab(id);
   });
 
@@ -59,7 +60,7 @@ export function mountTabs(container, store, folio) {
   });
   list.addEventListener('auxclick', (event) => {
     const id = tabIdFrom(event);
-    if (event.button === 1 && id) store.closeTab(id);
+    if (event.button === 1 && id) closeTab(id);
   });
 
   // Reordering

@@ -1,6 +1,8 @@
 import { createStore, activeTab } from './state/store.js';
 import { mountTabs } from './features/tabs.js';
 import { createReader } from './features/reader/reader.js';
+import { createEditing } from './features/editing.js';
+import { createClosing } from './features/closing.js';
 import { mountDropOpen } from './features/drop-open.js';
 import { mountSession } from './features/session.js';
 import { runCommand } from './features/commands.js';
@@ -8,18 +10,20 @@ import { runCommand } from './features/commands.js';
 const folio = window.folio;
 const store = createStore();
 
-mountTabs(document.getElementById('tabs'), store, folio);
 const reader = createReader({ container: document.getElementById('content'), store, folio });
+const editing = createEditing({ store, reader, folio });
+const closing = createClosing({ store, editing, folio });
+mountTabs(document.getElementById('tabs'), { store, folio, closeTab: closing.closeTab });
 mountDropOpen(folio);
 mountSession(store, folio);
 
 store.subscribe((state) => {
   const tab = activeTab(state);
-  document.title = tab ? `${tab.name} - Folio` : 'Folio';
+  document.title = tab ? `${tab.dirty ? '• ' : ''}${tab.name} - Folio` : 'Folio';
 });
 
 folio.onFileOpened((file) => store.openTab(file));
-folio.onMenuCommand((name) => runCommand(store, reader, name));
+folio.onMenuCommand((name) => runCommand({ store, reader, editing, closing }, name));
 
 // Listeners are in place, so the main process can start sending files.
 folio.appReady();

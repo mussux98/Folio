@@ -8,10 +8,15 @@ module.exports = Object.freeze({
   FILE_OPEN: 'file:open',
   FILE_READ: 'file:read',
   PRINT_RUN: 'print:run',
+  DIALOG_SAVE: 'dialog:save',
+  DIALOG_ASK_SAVE: 'dialog:ask-save',
+  FILE_WRITE: 'file:write',
+  WINDOW_CLOSE: 'window:close',
   // renderer -> main, fire and forget
   SESSION_SAVE: 'session:save',
   VIEW_SAVE: 'view:save',
   LINK_OPEN: 'link:open',
+  DIRTY_SET: 'dirty:set',
   // main -> renderer
   FILE_OPENED: 'file:opened',
   MENU_COMMAND: 'menu:command',

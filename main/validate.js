@@ -5,6 +5,9 @@ const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 8;
 const FIT_MODES = ['width', 'page'];
 const MAX_LINK_LENGTH = 4096;
+const MAX_NAMES = 100;
+const MAX_NAME_LENGTH = 260;
+const MAX_WRITE_BYTES = 2 * 1024 * 1024 * 1024;
 
 const LINK_PROTOCOLS = ['http:', 'https:', 'mailto:'];
 
@@ -40,4 +43,19 @@ function parseExternalLink(value) {
   }
 }
 
-module.exports = { parseSession, parseView, parseExternalLink };
+// Tab names for the "Save changes?" question.
+function parseNames(value) {
+  if (!Array.isArray(value) || value.length > MAX_NAMES) return null;
+  const ok = value.every((name) => typeof name === 'string' && name.length > 0 && name.length <= MAX_NAME_LENGTH);
+  return ok ? [...value] : null;
+}
+
+// A save request: a .pdf path and bytes that look like a PDF.
+function parseWrite(filePath, bytes) {
+  if (!isPath(filePath) || path.extname(filePath).toLowerCase() !== '.pdf') return null;
+  if (!(bytes instanceof Uint8Array) || bytes.length < 5 || bytes.length > MAX_WRITE_BYTES) return null;
+  if (Buffer.from(bytes.buffer, bytes.byteOffset, 5).toString('latin1') !== '%PDF-') return null;
+  return { filePath, bytes };
+}
+
+module.exports = { parseSession, parseView, parseExternalLink, parseNames, parseWrite };

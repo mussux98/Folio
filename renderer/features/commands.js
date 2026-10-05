@@ -1,12 +1,37 @@
 import { activeTab } from '../state/store.js';
+import { rotatePage } from '../commands/rotate-page.js';
 
-// Menu items arrive here by name. Tab and zoom commands change the store;
-// the rest belong to the document on screen and go to the reader.
-export function runCommand(store, reader, name) {
+const isTextField = (el) => el?.matches?.('input, textarea');
+
+// Menu items arrive here by name. Tab and zoom commands change the store,
+// edits and saving go through editing, and the rest belong to the document on
+// screen and go to the reader. app is { store, reader, editing, closing }.
+export function runCommand({ store, reader, editing, closing }, name) {
   const tab = activeTab(store.getState());
+  const report = (promise) => promise.catch((err) => console.error(`${name} failed:`, err));
   switch (name) {
+    case 'undo':
+    case 'redo':
+      // In the find box, Ctrl+Z undoes typing as usual.
+      if (isTextField(document.activeElement)) document.execCommand(name);
+      else if (tab) report(name === 'undo' ? editing.undo(tab.id) : editing.redo(tab.id));
+      break;
+    case 'save':
+    case 'save-as':
+      if (tab) report(editing.save(tab.id, { as: name === 'save-as' }));
+      break;
+    case 'save-all-and-close':
+      report(closing.saveAllAndClose());
+      break;
+    case 'rotate-right':
+    case 'rotate-left': {
+      const doc = tab && reader.documentOf(tab.id);
+      const degrees = name === 'rotate-right' ? 90 : -90;
+      if (doc) report(editing.run(tab.id, rotatePage({ ...doc, index: tab.page - 1, degrees })));
+      break;
+    }
     case 'close-tab':
-      if (tab) store.closeTab(tab.id);
+      if (tab) closing.closeTab(tab.id);
       break;
     case 'next-tab':
       store.cycleTab(1);

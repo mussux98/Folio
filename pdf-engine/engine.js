@@ -169,5 +169,39 @@ export function createEngine() {
     return convert(doc.loadOutline() ?? []);
   }
 
-  return { openDocument, authenticate, closeDocument, pageSizes, renderPage, getText, searchPage, getLinks, getOutline };
+  // The matrix [a, b, c, d, e, f] from PDF user space (y up, before /Rotate and
+  // the crop box) to the page as displayed. See coords.js (rule 21).
+  function pageTransform(id, index) {
+    return withPage(id, index, (page) => [...page.getTransform()]);
+  }
+
+  // Edits change the document in memory only; save() writes them out.
+
+  // Turns a page by a multiple of 90 degrees (positive is clockwise).
+  // Returns the page's new [width, height].
+  function rotatePage(id, index, degrees) {
+    return withPage(id, index, (page) => {
+      const obj = page.getObject();
+      const current = obj.getInheritable('Rotate').asNumber() || 0;
+      obj.put('Rotate', (((current + degrees) % 360) + 360) % 360);
+      const [x0, y0, x1, y1] = page.getBounds();
+      return [x1 - x0, y1 - y0];
+    });
+  }
+
+  // The whole file with every edit. A full rewrite: saving incrementally a
+  // second time from the same document produces a broken file.
+  function save(id) {
+    const buffer = get(id).saveToBuffer('');
+    try {
+      return buffer.asUint8Array().slice();
+    } finally {
+      buffer.destroy();
+    }
+  }
+
+  return {
+    openDocument, authenticate, closeDocument, pageSizes, renderPage, getText, searchPage, getLinks, getOutline,
+    pageTransform, rotatePage, save,
+  };
 }

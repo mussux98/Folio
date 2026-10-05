@@ -12,7 +12,8 @@ const WHEEL_ZOOM_SPEED = 0.0015;
 // The scrolling column of pages for one open document. Zoom lives in the store
 // (tab.zoom / tab.fit); this follows it and writes back the zoom a fit mode produced.
 export function createViewer({ tabId, entry, engine, store, folio, start }) {
-  const { docId, sizes } = entry;
+  const { docId } = entry;
+  let sizes = entry.sizes;
   const count = sizes.length / 2;
 
   const scroller = document.createElement('div');
@@ -152,6 +153,22 @@ export function createViewer({ tabId, entry, engine, store, folio, start }) {
     }
   }
 
+  // An edit changed these pages; entry.sizes has their new sizes. The view
+  // keeps its place while they are drawn again.
+  function pagesChanged(pages) {
+    const y = scroller.scrollTop;
+    const page = pageAtOffset(layout, y);
+    const inPage = (y - layout.tops[page]) / layout.heights[page];
+    sizes = entry.sizes;
+    for (const i of pages) pageViews[i].redraw(sizes[i * 2], sizes[i * 2 + 1]);
+    layout = computeLayout(sizes, zoom);
+    placePages();
+    scroller.scrollTop = layout.tops[page] + inPage * layout.heights[page];
+    const tab = tabNow();
+    if (tab?.fit) applyZoom(fitFor(tab.fit));
+    scheduleUpdate();
+  }
+
   // byPage: Map of page index -> [{ rects, current }]
   function setHighlights(byPage) {
     for (const i of highlighted) if (!byPage.has(i)) pageViews[i].setHighlights(null);
@@ -221,6 +238,7 @@ export function createViewer({ tabId, entry, engine, store, folio, start }) {
     goToPage,
     reveal,
     setHighlights,
+    pagesChanged,
     focus: () => scroller.focus({ preventScroll: true }),
 
     // Returns where the user was, for coming back to this tab later.

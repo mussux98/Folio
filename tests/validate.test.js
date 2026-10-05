@@ -65,3 +65,21 @@ test('parseExternalLink only allows http, https and mailto', () => {
     assert.strictEqual(parseExternalLink(bad), null, String(bad));
   }
 });
+
+const { parseNames, parseWrite } = require('../main/validate.js');
+
+test('parseNames accepts a list of tab names and nothing else', () => {
+  assert.deepStrictEqual(parseNames(['a.pdf', 'b.pdf']), ['a.pdf', 'b.pdf']);
+  assert.strictEqual(parseNames(['a.pdf', 3]), null);
+  assert.strictEqual(parseNames(['']), null);
+  assert.strictEqual(parseNames('a.pdf'), null);
+});
+
+test('parseWrite needs an absolute .pdf path and PDF bytes', () => {
+  const pdf = new Uint8Array(Buffer.from('%PDF-1.7 ...'));
+  assert.deepStrictEqual(parseWrite(a, pdf), { filePath: a, bytes: pdf });
+  assert.strictEqual(parseWrite('a.pdf', pdf), null);
+  assert.strictEqual(parseWrite(path.resolve('a.exe'), pdf), null);
+  assert.strictEqual(parseWrite(a, new Uint8Array(Buffer.from('MZ not a pdf'))), null);
+  assert.strictEqual(parseWrite(a, '%PDF-1.7'), null);
+});

@@ -3,6 +3,7 @@ const path = require('path');
 const { Settings } = require('./settings');
 const { createMainWindow, getMainWindow, lockDownSession } = require('./window');
 const { createDocuments } = require('./documents');
+const { createSaving } = require('./saving');
 const { buildMenu } = require('./menu');
 const { registerIpc } = require('./ipc');
 const { pdfPathsFromArgv } = require('./pdf-path');
@@ -14,10 +15,16 @@ if (!isFirstInstance) app.quit();
 
 let settings;
 let documents;
+let saving;
 
 function openWindow() {
   const win = createMainWindow(settings);
-  win.on('closed', () => documents.reset());
+  saving.guardWindow(win);
+  win.on('closed', () => {
+    documents.reset();
+    saving.setDirty([]);
+    if (saving.quitting) app.quit();
+  });
 }
 
 function refreshMenu() {
@@ -58,13 +65,15 @@ app.on('second-instance', (_event, argv, workingDir) => {
 
 function start() {
   settings = new Settings(path.join(app.getPath('userData'), 'settings.json'));
+  saving = createSaving({ settings, getWindow: getMainWindow, onRecentChanged: refreshMenu });
   documents = createDocuments({
     settings,
     getWindow: getMainWindow,
     openWindow,
     onRecentChanged: refreshMenu,
+    allowWrite: saving.allowWrite,
   });
-  registerIpc({ settings, documents, getWindow: getMainWindow });
+  registerIpc({ settings, documents, saving, getWindow: getMainWindow });
   lockDownSession();
   refreshMenu();
 
@@ -79,7 +88,10 @@ function start() {
 
 if (isFirstInstance) app.whenReady().then(start);
 
-app.on('before-quit', () => settings?.flush());
+app.on('before-quit', () => {
+  saving?.startQuit();
+  settings?.flush();
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();

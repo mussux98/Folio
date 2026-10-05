@@ -6,7 +6,7 @@ const { FILE_OPENED } = require('../shared/ipc-channels');
 // Every way of opening a PDF ends up in openDocument (rule 17). It checks the
 // file and tells the window about it. Until the window says it is ready,
 // requests wait in a queue.
-function createDocuments({ settings, getWindow, openWindow, onRecentChanged }) {
+function createDocuments({ settings, getWindow, openWindow, onRecentChanged, allowWrite }) {
   let ready = false;
   let sessionRestored = false;
   const waiting = [];
@@ -51,6 +51,7 @@ function createDocuments({ settings, getWindow, openWindow, onRecentChanged }) {
       settings.addRecent(info.path);
       onRecentChanged();
     }
+    allowWrite(info.path);
     win.webContents.send(FILE_OPENED, { ...info, view: settings.getView(info.path), activate });
     if (!restore) {
       if (win.isMinimized()) win.restore();

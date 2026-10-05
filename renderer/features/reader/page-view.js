@@ -104,6 +104,21 @@ export function createPageView({ index, width, height, engine, docId, actions })
       layers = null;
     },
 
+    // The page was edited: draw it again at its new size. The old picture stays
+    // until the new one is ready (rule 20); the text layers are rebuilt.
+    redraw(w, h) {
+      width = w;
+      height = h;
+      render?.cancel();
+      render = null;
+      drawnScale = 0;
+      failedScale = 0;
+      layers?.cancel();
+      layers?.text?.remove();
+      layers?.links?.remove();
+      layers = null;
+    },
+
     // marks: [{ rects, current }] or null.
     setHighlights(next) {
       marks = next ?? [];

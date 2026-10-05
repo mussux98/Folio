@@ -113,7 +113,23 @@ export function createReader({ container, store, folio }) {
   store.subscribe(render);
   render(store.getState());
 
+  // An edit changed these pages: their size may be new, and they are drawn again.
+  async function pagesChanged(tabId, pages) {
+    const entry = entries.get(tabId);
+    if (entry?.status !== 'ready') return;
+    const sizes = await getEngine().pageSizes(entry.docId);
+    if (entries.get(tabId) !== entry) return;
+    entry.sizes = sizes;
+    if (mounted?.tabId === tabId) mounted.view?.pagesChanged(pages);
+  }
+
   return {
     command: (name) => mounted?.view?.command(name),
+    // { engine, docId } for a tab whose document is open, else null.
+    documentOf(tabId) {
+      const entry = entries.get(tabId);
+      return entry?.status === 'ready' ? { engine: getEngine(), docId: entry.docId } : null;
+    },
+    pagesChanged,
   };
 }

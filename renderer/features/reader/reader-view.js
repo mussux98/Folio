@@ -57,6 +57,12 @@ export function createReaderView({ tab, entry, engine, store, folio, start }) {
       viewer.focus();
     },
     command: (name) => commands[name]?.(),
+    // entry.sizes is already up to date.
+    pagesChanged(pages) {
+      viewer.pagesChanged(pages);
+      thumbnails.pagesChanged(pages);
+      find.refresh();
+    },
     destroy() {
       unmountKeys();
       find.destroy();
