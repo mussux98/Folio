@@ -64,3 +64,23 @@ test('markup over several pages is one undo step', async () => {
   await both.undo();
   assert.strictEqual(shown(0).length + shown(1).length, 0);
 });
+
+test('moving a drawing and deleting a stamp can each be undone', async () => {
+  const { commands, target } = await load();
+  const ink = { index: 0, key: null, spec: { type: 'Ink', paths: [[{ x: 10, y: 10 }, { x: 40, y: 30 }]], color: [0, 0, 0], width: 2, contents: '' } };
+  await commands.placeAnnotation(target, ink).execute();
+  const move = commands.changeAnnotation(target, ink, { paths: [[{ x: 110, y: 10 }, { x: 140, y: 30 }]] });
+  await move.execute();
+  assert.deepStrictEqual(ink.spec.paths[0][0], { x: 110, y: 10 });
+  await move.undo();
+  assert.deepStrictEqual(ink.spec.paths[0][0], { x: 10, y: 10 });
+
+  const stamp = { index: 0, key: null, spec: { type: 'Stamp', rects: [{ x: 50, y: 100, w: 160, h: 40 }], icon: 'Draft', color: [1, 0, 0], contents: '' } };
+  await commands.placeAnnotation(target, stamp).execute();
+  const removal = commands.removeAnnotation(target, stamp);
+  await removal.execute();
+  const gone = stamp.key;
+  await removal.undo();
+  assert.notStrictEqual(stamp.key, gone, 'put back under a new key');
+  await commands.changeAnnotation(target, stamp, { color: [0, 0, 1] }).execute();
+});

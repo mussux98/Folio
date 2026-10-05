@@ -96,9 +96,12 @@ export function createToolbar({ tabId, pageCount, store, viewer, find, print, op
     ['Highlight', 'Highlight the selected text', () => annotating.markSelection('Highlight')],
     ['Underline', 'Underline the selected text', () => annotating.markSelection('Underline')],
     ['Strike', 'Strike out the selected text', () => annotating.markSelection('StrikeOut')],
-    ['Note', 'Add a sticky note', () => annotating.startNote()],
-  ].map(([label, title, onClick]) => {
-    const mark = button(label, title, onClick, label === 'Note' ? 'mark-button note-button' : 'mark-button');
+    ['Note', 'Add a sticky note', () => annotating.startNote(), 'note-button'],
+    ['Pen', 'Draw freehand', () => annotating.startPen(), 'pen-button'],
+    ['Shapes ▾', 'Draw a rectangle, ellipse, line or arrow', (event) => annotating.openShapes(event.currentTarget), 'shapes-button'],
+    ['Stamp ▾', 'Add a stamp such as Approved or Draft', (event) => annotating.openStamps(event.currentTarget), 'stamp-button'],
+  ].map(([label, title, onClick, kind = '']) => {
+    const mark = button(label, title, onClick, `mark-button ${kind}`.trim());
     mark.addEventListener('mousedown', (event) => event.preventDefault());
     return mark;
   });

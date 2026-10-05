@@ -75,10 +75,10 @@ Rotate, delete, reorder (drag thumbnails), insert, extract, merge PDFs, split.
 - **Copy, cut and paste pages** (Ctrl+C/X/V with the thumbnails focused, or the Pages menu) work between tabs; the copy stays inside Folio and is lost on quit. Tested in the running app across two tabs.
 - Pages are tracked by position, so these commands rely on undo running in reverse order (it does).
 
-## Phase 3: Annotations · **Sonnet** (Opus for coordinate-heavy parts) · 🟨
+## Phase 3: Annotations · **Sonnet** (Opus for coordinate-heavy parts) · ✅
 Highlight, underline, strikethrough, sticky notes, freehand drawing, shapes, stamps.
 - **3a · text markup and sticky notes · ✅.** Select text, then Highlight / Underline / Strike (one undo step even across pages). Note: click a page, type, click away. Click a markup line or a note to recolour, edit or delete it, including ones already in the file. Highlights are written with square ends and multiply blend.
-- **3b · freehand, shapes, stamps · ⬜.** Model: **Opus** for the coordinates. Reuse `pdf-engine/annotations.js`, `commands/annotation.js` and the annotation layer.
+- **3b · freehand, shapes, stamps · ✅.** Pen (stays on until Esc), Shapes menu (rectangle, ellipse, line, arrow; Shift for square, circle, 45°) and Stamp menu (Approved, Not Approved, Draft, Final, Confidential, For Comment). Click a drawing to recolour, change its thickness, drag it, or resize a box shape from its corners (stamps keep their shape); ink is move-only. Shapes are outlines only. Stamps are counter-turned so they stay upright on rotated pages. Picture stamps stay with signatures.
 
 ## Phase 4: Forms · **Sonnet** · ⬜
 Fill form fields, save, flatten.

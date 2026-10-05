@@ -9,7 +9,7 @@ import * as mupdf from '../node_modules/mupdf/dist/mupdf.js';
 const keyOf = (annot) => String(annot.getObject().asIndirect());
 
 // The picture a stamp shows: the first image in its appearance, or null.
-function imageRef(annot) {
+export function imageRef(annot) {
   const found = [];
   annot.getObject().get('AP', 'N', 'Resources', 'XObject').forEach((value) => {
     if (value.resolve().get('Subtype').asName() === 'Image') found.push(value);

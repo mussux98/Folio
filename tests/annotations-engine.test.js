@@ -74,5 +74,5 @@ test('changing a highlight colour redraws it, and a missing annotation is report
   assert.ok(near(r, 0) && near(g, 255));
   engine.removeAnnotation(id, 0, key);
   assert.throws(() => engine.removeAnnotation(id, 0, key), /no longer/);
-  assert.throws(() => engine.addAnnotation(id, 0, { ...spec, type: 'Square' }), /not supported/);
+  assert.throws(() => engine.addAnnotation(id, 0, { ...spec, type: 'Polygon' }), /not supported/);
 });

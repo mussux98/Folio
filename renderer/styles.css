@@ -173,10 +173,13 @@ body.signing .sign-box { pointer-events: none; }
 
 /* Text markup and notes */
 .mark-button { white-space: nowrap; }
-body.placing-note .note-button { background: var(--accent); color: var(--accent-fg); }
+body[data-anno-tool='Note'] .note-button, body[data-anno-tool='Ink'] .pen-button,
+body[data-anno-tool='Square'] .shapes-button, body[data-anno-tool='Circle'] .shapes-button,
+body[data-anno-tool='Line'] .shapes-button, body[data-anno-tool='Arrow'] .shapes-button,
+body[data-anno-tool='Stamp'] .stamp-button { background: var(--accent); color: var(--accent-fg); }
 .anno-layer { z-index: 2; position: absolute; left: 0; top: 0; transform: scale(var(--z)); transform-origin: 0 0; pointer-events: none; }
-body.placing-note .anno-layer { pointer-events: auto; cursor: crosshair; }
-body.placing-note .anno-note, body.editing-text .anno-note, body.signing .anno-note { pointer-events: none; }
+body.annotating .anno-layer { pointer-events: auto; cursor: crosshair; touch-action: none; }
+body.annotating .anno-note, body.editing-text .anno-note, body.signing .anno-note { pointer-events: none; }
 .anno-note { position: absolute; pointer-events: auto; cursor: pointer; }
 .anno-note.selected { outline: calc(1.5px / var(--z)) solid var(--accent); }
 .anno-rect { display: none; position: absolute; outline: calc(1.5px / var(--z)) solid var(--accent); }
@@ -191,6 +194,25 @@ body.placing-note .anno-note, body.editing-text .anno-note, body.signing .anno-n
 .anno-bar button:hover, .anno-editor button:hover { background: var(--line); }
 .anno-bar .anno-swatch { width: calc(22px / var(--z)); height: calc(22px / var(--z)); padding: 0; border-radius: 50%; }
 .anno-editor { position: absolute; left: 0; top: calc(100% + 4px / var(--z)); width: calc(240px / var(--z)); display: flex; flex-direction: column; gap: calc(4px / var(--z)); align-items: flex-start; cursor: default; }
+.anno-preview { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+.anno-shape { position: absolute; pointer-events: none; user-select: none; touch-action: none; }
+.anno-shape.selected { pointer-events: auto; cursor: move; outline: calc(1.5px / var(--z)) dashed var(--accent); }
+body.annotating .anno-shape, body.editing-text .anno-shape, body.signing .anno-shape { pointer-events: none; }
+.anno-layer.dragging .anno-bar { display: none; }
+.anno-shape .anno-anchor, .anno-handle { display: none; }
+.anno-shape.selected .anno-anchor, .anno-shape.selected .anno-handle { display: block; }
+.anno-shape .anno-anchor { pointer-events: none; }
+.anno-handle { position: absolute; width: calc(10px / var(--z)); height: calc(10px / var(--z)); background: var(--accent); border: calc(1px / var(--z)) solid var(--accent-fg); }
+.anno-handle.nw { left: calc(-5px / var(--z)); top: calc(-5px / var(--z)); cursor: nwse-resize; }
+.anno-handle.ne { right: calc(-5px / var(--z)); top: calc(-5px / var(--z)); cursor: nesw-resize; }
+.anno-handle.sw { left: calc(-5px / var(--z)); bottom: calc(-5px / var(--z)); cursor: nesw-resize; }
+.anno-handle.se { right: calc(-5px / var(--z)); bottom: calc(-5px / var(--z)); cursor: nwse-resize; }
+.anno-bar .anno-width { width: calc(30px / var(--z)); padding: 0 calc(6px / var(--z)); display: flex; align-items: center; }
+.anno-bar .anno-width span { display: block; width: 100%; background: var(--fg); border-radius: 1px; }
+.anno-bar .anno-width.current { border-color: var(--accent); }
+.pick-menu { position: fixed; z-index: 11; width: 160px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 4px; box-shadow: 0 6px 20px rgba(0, 0, 0, .5); display: flex; flex-direction: column; }
+.pick-menu button { text-align: left; background: transparent; color: var(--fg); border: 0; border-radius: 5px; padding: 6px 8px; }
+.pick-menu button:hover, .pick-menu button:focus-visible { background: var(--line); outline: none; }
 .anno-editor textarea { width: 100%; box-sizing: border-box; font: inherit; font-size: calc(13px / var(--z)); padding: calc(6px / var(--z)); background: #fff8c4; color: #222; border: calc(1px / var(--z)) solid #c9b44a; border-radius: calc(4px / var(--z)); resize: none; outline: none; }
 
 .edit-text-button { white-space: nowrap; }

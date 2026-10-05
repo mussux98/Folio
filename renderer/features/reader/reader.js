@@ -113,6 +113,9 @@ export function createReader({ container, store, folio }) {
           annotationLayer: (args) => annotations.layerFor(args),
           markSelection: (type) => annotations.markSelection(type),
           startNote: () => annotations.startNote(),
+          startPen: () => annotations.startPen(),
+          openShapes: (anchor) => annotations.openShapes(anchor),
+          openStamps: (anchor) => annotations.openStamps(anchor),
         },
         pageTools: Object.fromEntries(['move', 'remove', 'copy', 'cut', 'paste'].map((name) => [name, (...args) => pageTools[name](...args)])),
       });
