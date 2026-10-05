@@ -27,6 +27,7 @@ Status key: ⬜ not started · 🟨 in progress · ✅ done
 - Text selection and copy, Find with a results list and highlights, the document outline (table of contents), printing.
 - Clear errors for broken or password-protected files, with a password prompt.
 - **Done when:** it matches or beats `prototype/folio.html` and stays smooth on a 1,000-page file.
+- **Finished and tested on real PDFs.** Print speed is parked under "Later improvements".
 
 ### 1c. Editing foundation · **Opus** · ⬜
 - Command pattern with undo/redo (Ctrl+Z / Ctrl+Y), per tab.
