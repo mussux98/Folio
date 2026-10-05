@@ -3,6 +3,7 @@
 // measured from the top-left corner of the page as it is displayed.
 import * as mupdf from '../node_modules/mupdf/dist/mupdf.js';
 import { findInLine } from './fuzzy-search.js';
+import { inReadingOrder } from './reading-order.js';
 
 const MAX_SNIPPET = 120;
 
@@ -91,7 +92,7 @@ export function createEngine() {
           if (line.text.trim()) lines.push({ x, y, w, h, size: line.font.size, text: line.text, block: blockIndex });
         }
       });
-      return lines;
+      return inReadingOrder(lines);
     } finally {
       text.destroy();
     }

@@ -2,6 +2,8 @@
 // and scaled together by the --z variable on the page surface, so they follow
 // the zoom without being rebuilt.
 
+import { joinLine } from './text-join.js';
+
 const ruler = document.createElement('canvas').getContext('2d');
 
 function layer(className, width, height) {
@@ -12,27 +14,26 @@ function layer(className, width, height) {
   return el;
 }
 
-// What a copied selection gets after a line: a space inside a paragraph, a break between paragraphs.
-function lineEnd(line, next) {
-  if (next && next.block === line.block) {
-    const space = document.createElement('span');
-    space.className = 'line-space';
-    space.textContent = /\s$/.test(line.text) ? '' : ' ';
-    return space;
-  }
-  return document.createElement('br');
+// What a copied selection gets after a line (see text-join.js): nothing for a
+// split word, a space inside a paragraph, a break between paragraphs.
+function lineEnd(after) {
+  if (after === '\n') return document.createElement('br');
+  const space = document.createElement('span');
+  space.className = 'line-space';
+  space.textContent = after;
+  return space;
 }
 
 // Invisible text, one block per line, stretched to the width the PDF gives it,
-// so the browser can select and copy it. The line breaks are what make a copied
-// selection come out as paragraphs: lines of one paragraph are joined with a space,
-// and only a new paragraph starts a new line.
+// so the browser can select and copy it. A split word loses its hyphen in the
+// copy, so the line is stretched as if it were still there.
 export function buildTextLayer(lines, width, height) {
   const el = layer('text-layer', width, height);
   lines.forEach((line, i) => {
+    const { text, after } = joinLine(line, lines[i + 1]);
     const row = document.createElement('div');
     row.className = 'text-line';
-    row.textContent = line.text;
+    row.textContent = text;
     row.style.left = `${line.x}px`;
     row.style.top = `${line.y}px`;
     row.style.height = `${line.h}px`;
@@ -41,7 +42,7 @@ export function buildTextLayer(lines, width, height) {
     ruler.font = `${line.size}px sans-serif`;
     const natural = ruler.measureText(line.text).width;
     if (natural > 0) row.style.transform = `scaleX(${line.w / natural})`;
-    el.append(row, lineEnd(line, lines[i + 1]));
+    el.append(row, lineEnd(after));
   });
   return el;
 }
