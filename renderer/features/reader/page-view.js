@@ -1,11 +1,12 @@
 import { isCancelled } from '../../../pdf-engine/client.js';
 import { buildTextLayer, buildLinkLayer, buildHighlightLayer } from './page-layers.js';
+import { createOverlay } from './overlay.js';
 
 const sameScale = (a, b) => Math.abs(a - b) < b * 0.01;
 
 // One page in the scroll. It always exists as an empty sheet of the right size;
 // the picture and the text layers are loaded only while the page is near the screen.
-// width and height are in PDF points; actions is { goToPage(n), openLink(url), signLayer(args), editLayer(args) }.
+// width and height are in PDF points; actions is { goToPage(n), openLink(url), signLayer(args), editLayer(args), annotationLayer(args) }.
 export function createPageView({ index, width, height, engine, docId, actions }) {
   const el = document.createElement('div');
   el.className = 'page';
@@ -16,10 +17,12 @@ export function createPageView({ index, width, height, engine, docId, actions })
   let render = null; // { scale, cancel } while a picture is being made
   let failedScale = 0;
   let layers = null; // { cancel } while loading, { text, links, edit } when loaded
-  // The signing layer loads on its own and first in line, so a signature that was just
-  // placed or moved can be grabbed at once. { cancel } while loading, { el } when loaded.
-  let signing = null;
-  let staleSigning = null; // an edited page keeps its old signing layer until the new one is ready
+  // The signing and annotation layers load on their own and first in line, so something
+  // just placed or moved can be grabbed at once (see overlay.js).
+  const signing = createOverlay(el, () => engine.listSignatures(docId, index, -1),
+    (signatures) => actions.signLayer({ index, signatures, width, height }));
+  const annotating = createOverlay(el, () => engine.listAnnotations(docId, index, -1),
+    (list) => actions.annotationLayer({ index, annotations: list, width, height }));
   let marks = [];
   let highlights = null;
 
@@ -73,41 +76,14 @@ export function createPageView({ index, width, height, engine, docId, actions })
     }
   }
 
-  async function loadSigning() {
-    const request = engine.listSignatures(docId, index, -1);
-    const mine = { cancel: request.cancel };
-    signing = mine;
-    try {
-      const signatures = await request.promise;
-      if (signing !== mine) return;
-      signing = { cancel() {}, el: actions.signLayer({ index, signatures, width, height }) };
-      staleSigning?.remove();
-      staleSigning = null;
-      el.append(signing.el);
-    } catch (err) {
-      if (signing === mine) signing = isCancelled(err) ? null : { cancel() {} };
-    }
-  }
-
-  // keep: leave the layer in place until its replacement is ready.
-  function dropSigning(keep) {
-    signing?.cancel();
-    if (keep && signing?.el) {
-      staleSigning?.remove();
-      staleSigning = signing.el;
-    } else {
-      signing?.el?.remove();
-    }
-    signing = null;
-  }
-
   function cancelPending() {
     render?.cancel();
     if (layers && !layers.text) {
       layers.cancel();
       layers = null;
     }
-    if (signing && !signing.el) dropSigning(false);
+    signing.cancelPending();
+    annotating.cancelPending();
   }
 
   return {
@@ -123,7 +99,8 @@ export function createPageView({ index, width, height, engine, docId, actions })
         draw(scale, priority);
       }
       if (!layers) loadLayers(priority + 2);
-      if (!signing) loadSigning();
+      signing.show();
+      annotating.show();
     },
 
     cancelPending,
@@ -138,9 +115,8 @@ export function createPageView({ index, width, height, engine, docId, actions })
       layers?.links?.remove();
       layers?.edit?.remove();
       layers = null;
-      dropSigning(false);
-      staleSigning?.remove();
-      staleSigning = null;
+      signing.release();
+      annotating.release();
     },
 
     // The page was edited: draw it again at its new size. The old picture stays
@@ -157,7 +133,8 @@ export function createPageView({ index, width, height, engine, docId, actions })
       layers?.links?.remove();
       layers?.edit?.remove();
       layers = null;
-      dropSigning(true);
+      signing.drop(true);
+      annotating.drop(true);
     },
 
     // marks: [{ rects, current }] or null.

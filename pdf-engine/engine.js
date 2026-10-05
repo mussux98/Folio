@@ -5,6 +5,7 @@ import * as mupdf from '../node_modules/mupdf/dist/mupdf.js';
 import { findInLine } from './fuzzy-search.js';
 import { inReadingOrder } from './reading-order.js';
 import { createSignatures } from './signatures.js';
+import { createAnnotations } from './annotations.js';
 import { createTextEdits } from './text-edits.js';
 import { createPages } from './pages.js';
 
@@ -221,6 +222,13 @@ export function createEngine() {
   const listSignatures = (id, index) => signatures(id).list(index);
   const signaturePicture = (id, index, key) => signatures(id).picture(index, key);
 
+  // Annotations (text markup and notes): each call works on one page.
+  const annotations = (id) => createAnnotations((index, task) => withPage(id, index, task));
+  const addAnnotation = (id, index, spec) => annotations(id).add(index, spec);
+  const changeAnnotation = (id, index, key, changes) => annotations(id).change(index, key, changes);
+  const removeAnnotation = (id, index, key) => annotations(id).remove(index, key);
+  const listAnnotations = (id, index) => annotations(id).list(index);
+
   // Text: each change has a key, so undo and redo can swap it out and back in.
   function texts(id) {
     if (!textEdits.has(id)) textEdits.set(id, createTextEdits(get(id), (index, task) => withPage(id, index, task)));
@@ -267,6 +275,7 @@ export function createEngine() {
   return {
     openDocument, authenticate, closeDocument, pageSizes, renderPage, getText, searchPage, getLinks, getOutline,
     pageTransform, rotatePage, deletePages, restorePages, arrangePages, addBlankPage, insertPagesFrom, extractPages, addSignature, moveSignature, removeSignature, listSignatures, signaturePicture,
+    addAnnotation, changeAnnotation, removeAnnotation, listAnnotations,
     textLineAt, documentFonts, replaceText, swapText, save,
   };
 }

@@ -4,6 +4,7 @@ All notable changes to Folio are documented here. Format follows Keep a Changelo
 
 ## [Unreleased]
 ### Added
+- Text markup and sticky notes: select text and choose Highlight, Underline or Strike in the toolbar; Note puts a sticky note where you click. Click markup or a note to change its colour, edit it or delete it. Works on annotations already in the file, and can be undone.
 - Page tools in a new Pages menu: delete, insert a blank page, insert pages from other PDFs, copy, cut and paste pages between tabs (Ctrl+C, Ctrl+X, Ctrl+V on the thumbnails, or the Pages menu), merge files, extract pages to a new file, split into several files. Thumbnails can be picked and dragged to reorder pages. Rotate now turns every picked page. All of it can be undone, except writing the extracted and split files.
 
 ## [1.0.0] - 2026-10-05

@@ -11,7 +11,7 @@ const WHEEL_ZOOM_SPEED = 0.0015;
 
 // The scrolling column of pages for one open document. Zoom lives in the store
 // (tab.zoom / tab.fit); this follows it and writes back the zoom a fit mode produced.
-export function createViewer({ tabId, entry, engine, store, folio, start, signLayer, editLayer }) {
+export function createViewer({ tabId, entry, engine, store, folio, start, signLayer, editLayer, annotationLayer }) {
   const { docId } = entry;
   let sizes = entry.sizes;
   const count = sizes.length / 2;
@@ -28,6 +28,7 @@ export function createViewer({ tabId, entry, engine, store, folio, start, signLa
     openLink: (url) => folio.openLink(url),
     signLayer: (args) => signLayer({ tabId, ...args }),
     editLayer: (args) => editLayer({ tabId, ...args }),
+    annotationLayer: (args) => annotationLayer({ tabId, ...args }),
   };
   const pageViews = Array.from({ length: count }, (_, i) => createPageView({
     index: i, width: sizes[i * 2], height: sizes[i * 2 + 1], engine, docId, actions,

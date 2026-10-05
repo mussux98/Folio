@@ -18,7 +18,7 @@ function option(value, label) {
 }
 
 // The bar above the pages: sidebar, page number, zoom, search, editing, signing and print.
-export function createToolbar({ tabId, pageCount, store, viewer, find, print, openSignMenu, toggleTextEditing }) {
+export function createToolbar({ tabId, pageCount, store, viewer, find, print, openSignMenu, toggleTextEditing, annotating }) {
   const el = document.createElement('div');
   el.className = 'toolbar';
 
@@ -91,6 +91,18 @@ export function createToolbar({ tabId, pageCount, store, viewer, find, print, op
     if (!findInput.value && find.state.query) find.search('');
   });
 
+  // Marking acts on the text selected on the page, so these buttons must not take the selection away.
+  const markButtons = [
+    ['Highlight', 'Highlight the selected text', () => annotating.markSelection('Highlight')],
+    ['Underline', 'Underline the selected text', () => annotating.markSelection('Underline')],
+    ['Strike', 'Strike out the selected text', () => annotating.markSelection('StrikeOut')],
+    ['Note', 'Add a sticky note', () => annotating.startNote()],
+  ].map(([label, title, onClick]) => {
+    const mark = button(label, title, onClick, label === 'Note' ? 'mark-button note-button' : 'mark-button');
+    mark.addEventListener('mousedown', (event) => event.preventDefault());
+    return mark;
+  });
+
   el.append(
     sidebarToggle,
     separator(),
@@ -108,6 +120,8 @@ export function createToolbar({ tabId, pageCount, store, viewer, find, print, op
     button('▼', 'Next match (Enter)', () => find.next(), 'nav'),
     findCount,
     spacer(),
+    ...markButtons,
+    separator(),
     button('Edit Text', 'Change or add text (Ctrl+E)', toggleTextEditing, 'edit-text-button'),
     button('Sign', 'Add a signature', openSignMenu, 'sign-button'),
     button('Print', 'Print (Ctrl+P)', print),

@@ -171,6 +171,28 @@ body.signing .sign-box { pointer-events: none; }
 .sign-bar button { font-size: calc(13px / var(--z)); height: calc(26px / var(--z)); min-width: calc(28px / var(--z)); padding: 0 calc(8px / var(--z)); background: var(--surface); color: var(--fg); border: calc(1px / var(--z)) solid var(--line); border-radius: calc(5px / var(--z)); }
 .sign-bar button:hover { background: var(--line); }
 
+/* Text markup and notes */
+.mark-button { white-space: nowrap; }
+body.placing-note .note-button { background: var(--accent); color: var(--accent-fg); }
+.anno-layer { z-index: 2; position: absolute; left: 0; top: 0; transform: scale(var(--z)); transform-origin: 0 0; pointer-events: none; }
+body.placing-note .anno-layer { pointer-events: auto; cursor: crosshair; }
+body.placing-note .anno-note, body.editing-text .anno-note, body.signing .anno-note { pointer-events: none; }
+.anno-note { position: absolute; pointer-events: auto; cursor: pointer; }
+.anno-note.selected { outline: calc(1.5px / var(--z)) solid var(--accent); }
+.anno-rect { display: none; position: absolute; outline: calc(1.5px / var(--z)) solid var(--accent); }
+.anno-mark.selected .anno-rect { display: block; }
+.anno-anchor { position: absolute; }
+.anno-bar, .anno-editor { pointer-events: auto; }
+.anno-mark .anno-anchor, .anno-note .anno-anchor { display: none; }
+.anno-mark.selected .anno-anchor, .anno-note.selected .anno-anchor { display: block; }
+.anno-bar { position: absolute; left: 0; bottom: calc(100% + 6px / var(--z)); display: flex; align-items: center; gap: calc(4px / var(--z)); white-space: nowrap; cursor: default; }
+.anno-anchor.below .anno-bar { bottom: auto; top: calc(100% + 6px / var(--z)); }
+.anno-bar button, .anno-editor button { font-size: calc(13px / var(--z)); height: calc(26px / var(--z)); padding: 0 calc(8px / var(--z)); background: var(--surface); color: var(--fg); border: calc(1px / var(--z)) solid var(--line); border-radius: calc(5px / var(--z)); }
+.anno-bar button:hover, .anno-editor button:hover { background: var(--line); }
+.anno-bar .anno-swatch { width: calc(22px / var(--z)); height: calc(22px / var(--z)); padding: 0; border-radius: 50%; }
+.anno-editor { position: absolute; left: 0; top: calc(100% + 4px / var(--z)); width: calc(240px / var(--z)); display: flex; flex-direction: column; gap: calc(4px / var(--z)); align-items: flex-start; cursor: default; }
+.anno-editor textarea { width: 100%; box-sizing: border-box; font: inherit; font-size: calc(13px / var(--z)); padding: calc(6px / var(--z)); background: #fff8c4; color: #222; border: calc(1px / var(--z)) solid #c9b44a; border-radius: calc(4px / var(--z)); resize: none; outline: none; }
+
 .edit-text-button { white-space: nowrap; }
 body.editing-text .edit-text-button { background: var(--accent); color: var(--accent-fg); }
 .edit-layer { z-index: 3; position: absolute; left: 0; top: 0; transform: scale(var(--z)); transform-origin: 0 0; pointer-events: none; }

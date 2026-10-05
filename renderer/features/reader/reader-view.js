@@ -12,19 +12,21 @@ import { mountKeys } from './keys.js';
 // start is where the tab was last time ({ top, zoom }), if it was open before.
 // signing is { signLayer(args), openMenu() } from the signatures feature, and
 // textEditing is { editLayer(args), toggle() } from the text editing feature, and
+// annotating is { annotationLayer(args), markSelection(type), startNote() } from the annotations feature, and
 // pageTools is { move, remove, copy, cut, paste } from the page tools.
-export function createReaderView({ tab, entry, engine, store, folio, start, signing, textEditing, pageTools }) {
+export function createReaderView({ tab, entry, engine, store, folio, start, signing, textEditing, annotating, pageTools }) {
   const tabId = tab.id;
   const pageCount = entry.sizes.length / 2;
 
   const viewer = createViewer({
-    tabId, entry, engine, store, folio, start, signLayer: signing.signLayer, editLayer: textEditing.editLayer,
+    tabId, entry, engine, store, folio, start,
+    signLayer: signing.signLayer, editLayer: textEditing.editLayer, annotationLayer: annotating.annotationLayer,
   });
   const find = createFind({ engine, docId: entry.docId, pageCount, viewer });
 
   const print = () => printDocument({ engine, entry, folio });
   const toolbar = createToolbar({
-    tabId, pageCount, store, viewer, find, print, openSignMenu: signing.openMenu, toggleTextEditing: textEditing.toggle,
+    tabId, pageCount, store, viewer, find, print, openSignMenu: signing.openMenu, toggleTextEditing: textEditing.toggle, annotating,
   });
   const thumbnails = createThumbnails({ entry, engine, store, tabId, viewer, pageTools });
   const sidebar = createSidebar({

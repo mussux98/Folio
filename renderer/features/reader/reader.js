@@ -12,6 +12,7 @@ export function createReader({ container, store, folio }) {
   let signing = null; // set once the signatures feature exists; it needs the reader itself
   let textEditing = null; // the same for text editing
   let pageTools = null; // and for the page tools
+  let annotations = null; // and for text markup and notes
   const entries = new Map(); // tab id -> entry
   const lastSpot = new Map(); // tab id -> { top, zoom } of a tab that is not showing
 
@@ -108,6 +109,11 @@ export function createReader({ container, store, folio }) {
         tab, entry, engine: getEngine(), store, folio, start: lastSpot.get(tab.id),
         signing: { signLayer: (args) => signing.layerFor(args), openMenu: () => signing.openMenu() },
         textEditing: { editLayer: (args) => textEditing.layerFor(args), toggle: () => textEditing.toggle() },
+        annotating: {
+          annotationLayer: (args) => annotations.layerFor(args),
+          markSelection: (type) => annotations.markSelection(type),
+          startNote: () => annotations.startNote(),
+        },
         pageTools: Object.fromEntries(['move', 'remove', 'copy', 'cut', 'paste'].map((name) => [name, (...args) => pageTools[name](...args)])),
       });
       mounted.view = view;
@@ -156,6 +162,9 @@ export function createReader({ container, store, folio }) {
     },
     setTextEditing(feature) {
       textEditing = feature;
+    },
+    setAnnotations(feature) {
+      annotations = feature;
     },
     setPageTools(feature) {
       pageTools = feature;
