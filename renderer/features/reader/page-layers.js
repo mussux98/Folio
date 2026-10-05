@@ -12,12 +12,24 @@ function layer(className, width, height) {
   return el;
 }
 
+// What a copied selection gets after a line: a space inside a paragraph, a break between paragraphs.
+function lineEnd(line, next) {
+  if (next && next.block === line.block) {
+    const space = document.createElement('span');
+    space.className = 'line-space';
+    space.textContent = /\s$/.test(line.text) ? '' : ' ';
+    return space;
+  }
+  return document.createElement('br');
+}
+
 // Invisible text, one block per line, stretched to the width the PDF gives it,
 // so the browser can select and copy it. The line breaks are what make a copied
-// selection come out one line per line.
+// selection come out as paragraphs: lines of one paragraph are joined with a space,
+// and only a new paragraph starts a new line.
 export function buildTextLayer(lines, width, height) {
   const el = layer('text-layer', width, height);
-  for (const line of lines) {
+  lines.forEach((line, i) => {
     const row = document.createElement('div');
     row.className = 'text-line';
     row.textContent = line.text;
@@ -29,8 +41,8 @@ export function buildTextLayer(lines, width, height) {
     ruler.font = `${line.size}px sans-serif`;
     const natural = ruler.measureText(line.text).width;
     if (natural > 0) row.style.transform = `scaleX(${line.w / natural})`;
-    el.append(row, document.createElement('br'));
-  }
+    el.append(row, lineEnd(line, lines[i + 1]));
+  });
   return el;
 }
 

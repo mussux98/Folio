@@ -24,7 +24,9 @@ export function makePdf(pages, options = {}) {
 
   pages.forEach((entry, i) => {
     const { text, size = [300, 400], rotate = 0 } = typeof entry === 'string' ? { text: entry } : entry;
-    const content = `BT /F1 18 Tf 20 ${size[1] - 50} Td (${escape(text)}) Tj ET`;
+    // A new line in the text starts a new line on the page.
+    const shown = text.split('\n').map((line) => `(${escape(line)}) Tj T*`).join(' ');
+    const content = `BT /F1 18 Tf 22 TL 20 ${size[1] - 50} Td ${shown} ET`;
     const page = doc.addPage([0, 0, ...size], rotate, resources, content);
     doc.insertPage(-1, page);
   });

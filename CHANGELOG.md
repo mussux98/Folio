@@ -5,6 +5,7 @@ All notable changes to Folio are documented here. Format follows Keep a Changelo
 ## [Unreleased]
 ### Added
 - Reader on MuPDF.js: continuous scroll with lazy rendering, cancellation and memory freeing; thumbnails; zoom (fit width, fit page, percentages, Ctrl+wheel); page navigation and the prototype's keyboard shortcuts.
+- Copying text keeps paragraphs together (lines of one paragraph are joined with a space) and copies plain text only.
 - Find ignores case, accents and stray accent marks (cafe finds Café, esta finds esta`).
 - Text selection and copy, Find with a results list and highlights, the document outline, clickable links, printing.
 - Clear messages for damaged files and a password prompt for protected ones.

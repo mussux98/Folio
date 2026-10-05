@@ -83,13 +83,14 @@ export function createEngine() {
     const text = page.toStructuredText('preserve-whitespace');
     try {
       const lines = [];
-      for (const block of JSON.parse(text.asJSON()).blocks) {
-        if (block.type !== 'text') continue;
+      // block groups the lines of one paragraph, so copying can join them.
+      JSON.parse(text.asJSON()).blocks.forEach((block, blockIndex) => {
+        if (block.type !== 'text') return;
         for (const line of block.lines) {
           const { x, y, w, h } = line.bbox;
-          if (line.text.trim()) lines.push({ x, y, w, h, size: line.font.size, text: line.text });
+          if (line.text.trim()) lines.push({ x, y, w, h, size: line.font.size, text: line.text, block: blockIndex });
         }
-      }
+      });
       return lines;
     } finally {
       text.destroy();

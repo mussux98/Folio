@@ -178,6 +178,15 @@ export function createViewer({ tabId, entry, engine, store, folio, start }) {
     });
   }, { passive: false });
 
+  // Copy plain text only. The default also copies the page's HTML, which Word and
+  // similar programs turn into one paragraph per line.
+  scroller.addEventListener('copy', (event) => {
+    const text = getSelection().toString();
+    if (!text) return;
+    event.clipboardData.setData('text/plain', text);
+    event.preventDefault();
+  });
+
   scroller.addEventListener('scroll', scheduleUpdate, { passive: true });
 
   const resizes = new ResizeObserver(() => {

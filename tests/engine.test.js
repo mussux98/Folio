@@ -104,3 +104,14 @@ test('search ignores case, accents and stray accent marks', async () => {
   assert.strictEqual(count('está'), 1);
   assert.strictEqual(count('missing'), 0);
 });
+
+test('lines of one paragraph share a block, separate paragraphs do not', async () => {
+  const { engine, makePdf } = await load();
+  const { id } = engine.openDocument(makePdf(['first line\nsecond line']));
+  const lines = engine.getText(id, 0);
+  assert.strictEqual(lines.length, 2);
+  assert.strictEqual(lines[0].block, lines[1].block);
+
+  const apart = engine.openDocument(makePdf([{ text: 'top', size: [300, 400] }, 'x'])).id;
+  assert.strictEqual(typeof engine.getText(apart, 0)[0].block, 'number');
+});
