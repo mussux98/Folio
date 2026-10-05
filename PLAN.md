@@ -70,6 +70,9 @@ True redaction, OCR (Tesseract.js, offline), compression, password protection.
 ## Phase 6: Mac launch · **Sonnet** · ⬜
 Mac `open-file` event, `hiddenInset` title bar, Mac menus, Apple Developer ID signing and notarization (`@electron/notarize`, $99/year), DMG.
 
+## Later improvements (not scheduled)
+- **Faster printing:** printing renders every page at 150 dpi before the dialog opens, so big files are slow. Ask for a page range first and render only those pages.
+
 ## Open decisions
 - **Auto-updates:** none, or an opt-in check (rule 6). Decide before 1f.
 - **Windows code signing:** Azure Trusted Signing vs a certificate vs none. Decide before 1f.
