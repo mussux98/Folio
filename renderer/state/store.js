@@ -47,7 +47,7 @@ export function createStore() {
         if (activate) set({ ...state, activeId: existing.id });
         return existing.id;
       }
-      const tab = withHistory({ id: nextId++, path, name, size, page: view.page, zoom: view.zoom, fit: view.fit ?? null }, EMPTY_HISTORY);
+      const tab = withHistory({ id: nextId++, path, name, size, page: view.page, zoom: view.zoom, fit: view.fit ?? null, selected: [] }, EMPTY_HISTORY);
       set({
         ...state,
         tabs: [...state.tabs, tab],
@@ -106,6 +106,14 @@ export function createStore() {
       if (changed) set({ ...state, tabs });
     },
 
+    // The pages picked in the thumbnails, as indexes from 0 in ascending order.
+    setSelection(id, indexes) {
+      const selected = [...indexes].sort((a, b) => a - b);
+      updateTab(id, (tab) => (
+        tab.selected.length === selected.length && tab.selected.every((n, i) => n === selected[i]) ? tab : { ...tab, selected }
+      ));
+    },
+
     // An edit that has just been carried out. It clears what could be redone.
     recordEdit(id, command) {
       updateTab(id, (tab) => {
@@ -154,6 +162,11 @@ export function createStore() {
   };
 
   return store;
+}
+
+// The pages a page command works on: the ones picked, else the one in view.
+export function targetPages(tab) {
+  return tab.selected.length ? tab.selected : [tab.page - 1];
 }
 
 export function activeTab(state) {

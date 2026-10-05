@@ -1,12 +1,11 @@
 import { activeTab } from '../state/store.js';
-import { rotatePage } from '../commands/rotate-page.js';
 
 const isTextField = (el) => el?.matches?.('input, textarea');
 
 // Menu items arrive here by name. Tab and zoom commands change the store,
 // edits and saving go through editing, and the rest belong to the document on
-// screen and go to the reader. app is { store, reader, editing, closing, textEditing }.
-export function runCommand({ store, reader, editing, closing, textEditing }, name) {
+// screen and go to the reader. app is { store, reader, editing, closing, textEditing, pageTools }.
+export function runCommand({ store, reader, editing, closing, textEditing, pageTools }, name) {
   const tab = activeTab(store.getState());
   const report = (promise) => promise.catch((err) => console.error(`${name} failed:`, err));
   switch (name) {
@@ -24,12 +23,29 @@ export function runCommand({ store, reader, editing, closing, textEditing }, nam
       report(closing.saveAllAndClose());
       break;
     case 'rotate-right':
-    case 'rotate-left': {
-      const doc = tab && reader.documentOf(tab.id);
-      const degrees = name === 'rotate-right' ? 90 : -90;
-      if (doc) report(editing.run(tab.id, rotatePage({ ...doc, index: tab.page - 1, degrees })));
+      pageTools.rotate(90);
       break;
-    }
+    case 'rotate-left':
+      pageTools.rotate(-90);
+      break;
+    case 'delete-pages':
+      pageTools.remove();
+      break;
+    case 'insert-blank':
+      pageTools.insertBlank();
+      break;
+    case 'insert-from-file':
+      report(pageTools.insertFiles('after'));
+      break;
+    case 'merge-files':
+      report(pageTools.insertFiles('end'));
+      break;
+    case 'extract-pages':
+      report(pageTools.extract());
+      break;
+    case 'split-document':
+      report(pageTools.split());
+      break;
     case 'edit-text':
       if (tab) textEditing.toggle();
       break;

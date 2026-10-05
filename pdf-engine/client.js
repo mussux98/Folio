@@ -89,6 +89,12 @@ export function createEngineClient() {
     // Edits and saving go ahead of drawing.
     pageTransform: (id, index) => call('pageTransform', [id, index], { priority: -1 }),
     rotatePage: (id, index, degrees) => call('rotatePage', [id, index, degrees], { priority: -1 }),
+    deletePages: (id, indexes) => call('deletePages', [id, indexes], { priority: -1 }),
+    restorePages: (id, token) => call('restorePages', [id, token], { priority: -1 }),
+    arrangePages: (id, order) => call('arrangePages', [id, order], { priority: -1 }),
+    addBlankPage: (id, at, size) => call('addBlankPage', [id, at, size], { priority: -1 }),
+    insertPagesFrom: (id, at, bytes, indexes) => call('insertPagesFrom', [id, at, bytes, indexes], { priority: -1 }),
+    extractPages: (id, indexes) => call('extractPages', [id, indexes], { priority: -1 }),
     addSignature: (id, index, png, rect) => call('addSignature', [id, index, png, rect], { priority: -1 }),
     moveSignature: (id, index, key, rect) => call('moveSignature', [id, index, key, rect], { priority: -1 }),
     removeSignature: (id, index, key) => call('removeSignature', [id, index, key], { priority: -1 }),

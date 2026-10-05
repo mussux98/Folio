@@ -1,5 +1,7 @@
 import { isCancelled } from '../../../pdf-engine/client.js';
 import { computeLayout, visibleRange } from './layout.js';
+import { createSelection } from './thumb-select.js';
+import { mountDrag } from './thumb-drag.js';
 
 const THUMB_WIDTH = 132;
 const LABEL_HEIGHT = 22;
@@ -8,7 +10,8 @@ const KEEP = 3;
 
 // The page thumbnails in the sidebar. Like the main scroll, only the ones near
 // the view are drawn; the rest are empty boxes of the right size.
-export function createThumbnails({ entry, engine, store, tabId, viewer }) {
+// pageTools is { move(indexes, gap), remove() }.
+export function createThumbnails({ entry, engine, store, tabId, viewer, pageTools }) {
   const { docId } = entry;
   let sizes = entry.sizes;
   const count = sizes.length / 2;
@@ -30,6 +33,8 @@ export function createThumbnails({ entry, engine, store, tabId, viewer }) {
   surface.className = 'thumbs-surface';
   scroller.append(surface);
 
+  const selection = createSelection({ store, tabId, count });
+
   const items = Array.from({ length: count }, (_, i) => {
     const el = document.createElement('button');
     el.className = 'thumb';
@@ -38,10 +43,25 @@ export function createThumbnails({ entry, engine, store, tabId, viewer }) {
     label.className = 'thumb-label';
     label.textContent = String(i + 1);
     el.append(label);
-    el.addEventListener('click', () => viewer.goToPage(i + 1));
+    el.addEventListener('click', (event) => {
+      selection.click(i, event);
+      if (!event.shiftKey && !event.ctrlKey && !event.metaKey) viewer.goToPage(i + 1);
+    });
     return { el, canvas: null, request: null, stale: false };
   });
   surface.append(...items.map((item) => item.el));
+  mountDrag({
+    scroller, surface, items, store, tabId, selection, getLayout: () => layout, move: pageTools.move,
+  });
+
+  scroller.addEventListener('keydown', (event) => {
+    const command = event.ctrlKey || event.metaKey;
+    if (event.key === 'Delete' || event.key === 'Backspace') pageTools.remove();
+    else if (command && event.key.toLowerCase() === 'a') selection.selectAll();
+    else if (event.key === 'Escape') selection.clear();
+    else return;
+    event.preventDefault();
+  });
 
   function place() {
     surface.style.height = `${layout.total}px`;
@@ -107,6 +127,17 @@ export function createThumbnails({ entry, engine, store, tabId, viewer }) {
   const resizes = new ResizeObserver(scheduleUpdate);
   resizes.observe(scroller);
 
+  // A single picked page stops counting once the view moves to another page.
+  let lastPage = null;
+  function showPicked() {
+    const tab = store.getState().tabs.find((t) => t.id === tabId);
+    if (!tab) return;
+    const moved = lastPage !== null && tab.page !== lastPage;
+    lastPage = tab.page;
+    if (moved && tab.selected.length === 1 && tab.selected[0] !== tab.page - 1) selection.clear();
+    items.forEach((item, i) => item.el.classList.toggle('selected', tab.selected.includes(i)));
+  }
+
   // Mark the current page, and keep it in view.
   let shownPage = 0;
   function showCurrent({ scrollTo }) {
@@ -122,7 +153,11 @@ export function createThumbnails({ entry, engine, store, tabId, viewer }) {
     }
   }
 
-  const unsubscribe = store.subscribe(() => showCurrent({ scrollTo: false }));
+  const unsubscribe = store.subscribe(() => {
+    showPicked();
+    showCurrent({ scrollTo: false });
+  });
+  showPicked();
 
   return {
     element: scroller,

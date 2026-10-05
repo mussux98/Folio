@@ -94,3 +94,13 @@ test('parseSignaturePng accepts PNG bytes and nothing else', () => {
   }
   assert.strictEqual(parseSignaturePng(new Uint8Array(3 * 1024 * 1024).fill(0x89)), null);
 });
+
+const { parsePartsRequest } = require('../main/validate.js');
+
+test('parsePartsRequest wants the current file and a sensible number of parts', () => {
+  assert.ok(parsePartsRequest(a, 2));
+  assert.ok(parsePartsRequest(a, 1000));
+  for (const [file, count] of [['a.pdf', 3], [a, 1], [a, 1001], [a, 2.5], [a, '3'], [null, 3]]) {
+    assert.ok(!parsePartsRequest(file, count));
+  }
+});

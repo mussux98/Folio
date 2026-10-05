@@ -2,6 +2,10 @@
 
 All notable changes to Folio are documented here. Format follows Keep a Changelog; versions follow Semantic Versioning.
 
+## [Unreleased]
+### Added
+- Page tools in a new Pages menu: delete, insert a blank page, insert pages from other PDFs, merge files, extract pages to a new file, split into several files. Thumbnails can be picked and dragged to reorder pages. Rotate now turns every picked page. All of it can be undone, except writing the extracted and split files.
+
 ## [1.0.0] - 2026-10-05
 ### Added
 - Windows installer (`Folio Setup 1.0.0.exe`, per-user, choose the install folder). At install it asks whether Folio should open PDF files by default. App icon.

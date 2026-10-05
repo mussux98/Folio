@@ -68,8 +68,11 @@ Split in two so each half is tested on its own.
 - **Done when:** `Folio Setup 1.0.0.exe` installs and runs on a clean Windows machine.
 - **Built and tested here:** `npm run dist` makes the installer (per-user NSIS, asks about the PDF association); the packaged app opens and renders a PDF; silent install and uninstall work. The checklist in `RELEASE.md` still has to be run by hand on a clean machine. No auto-updates, no code signing for 1.0.
 
-## Phase 2: Page tools · **Sonnet** · ⬜
+## Phase 2: Page tools · **Sonnet** · ✅
 Rotate, delete, reorder (drag thumbnails), insert, extract, merge PDFs, split.
+- **Built:** a **Pages** menu. Thumbnails can be picked (click, Ctrl/Cmd, Shift, Ctrl+A) and dragged to reorder; Delete key removes the picked pages. Rotate, delete, move, insert blank page, insert pages from files and merge are undoable commands. Extract and split write new files and leave the document alone (split asks pages per file and a folder; it never overwrites).
+- **Tested:** engine, commands, validation and part naming have automated tests. Delete, undo, drag-reorder, insert blank and rotate were driven in the running app. The native file and folder dialogs (insert from file, merge, extract, split) were **not** clicked through by hand; check them once.
+- Pages are tracked by position, so these commands rely on undo running in reverse order (it does).
 
 ## Phase 3: Annotations · **Sonnet** (Opus for coordinate-heavy parts) · ⬜
 Highlight, underline, strikethrough, sticky notes, freehand drawing, shapes, stamps.

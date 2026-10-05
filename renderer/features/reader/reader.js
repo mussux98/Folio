@@ -11,6 +11,7 @@ export function createReader({ container, store, folio }) {
   let engine = null;
   let signing = null; // set once the signatures feature exists; it needs the reader itself
   let textEditing = null; // the same for text editing
+  let pageTools = null; // and for the page tools
   const entries = new Map(); // tab id -> entry
   const lastSpot = new Map(); // tab id -> { top, zoom } of a tab that is not showing
 
@@ -107,6 +108,7 @@ export function createReader({ container, store, folio }) {
         tab, entry, engine: getEngine(), store, folio, start: lastSpot.get(tab.id),
         signing: { signLayer: (args) => signing.layerFor(args), openMenu: () => signing.openMenu() },
         textEditing: { editLayer: (args) => textEditing.layerFor(args), toggle: () => textEditing.toggle() },
+        pageTools: { move: (...args) => pageTools.move(...args), remove: () => pageTools.remove() },
       });
       mounted.view = view;
       container.replaceChildren(view.element);
@@ -129,6 +131,25 @@ export function createReader({ container, store, folio }) {
     if (mounted?.tabId === tabId) mounted.view?.pagesChanged(pages);
   }
 
+  // Pages were added, removed or moved: every page's place changed, so the view
+  // is built again and lands on this page (from 1).
+  async function pagesRestructured(tabId, page) {
+    const entry = entries.get(tabId);
+    if (entry?.status !== 'ready') return;
+    const [sizes, outline] = await Promise.all([
+      getEngine().pageSizes(entry.docId),
+      getEngine().getOutline(entry.docId).catch(() => []),
+    ]);
+    if (entries.get(tabId) !== entry) return;
+    Object.assign(entry, { sizes, outline });
+    store.setView(tabId, { page: Math.min(page, sizes.length / 2) });
+    if (mounted?.tabId === tabId) {
+      unmount();
+      lastSpot.delete(tabId);
+    }
+    render(store.getState());
+  }
+
   return {
     setSigning(feature) {
       signing = feature;
@@ -136,12 +157,22 @@ export function createReader({ container, store, folio }) {
     setTextEditing(feature) {
       textEditing = feature;
     },
+    setPageTools(feature) {
+      pageTools = feature;
+    },
     command: (name) => mounted?.view?.command(name),
-    // { engine, docId } for a tab whose document is open, else null.
+    // { engine, docId, pageCount, pageSize(i) } for a tab whose document is open, else null.
     documentOf(tabId) {
       const entry = entries.get(tabId);
-      return entry?.status === 'ready' ? { engine: getEngine(), docId: entry.docId } : null;
+      if (entry?.status !== 'ready') return null;
+      return {
+        engine: getEngine(),
+        docId: entry.docId,
+        pageCount: entry.sizes.length / 2,
+        pageSize: (i) => [entry.sizes[i * 2], entry.sizes[i * 2 + 1]],
+      };
     },
     pagesChanged,
+    pagesRestructured,
   };
 }

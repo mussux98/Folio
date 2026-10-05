@@ -4,6 +4,7 @@ const { Settings } = require('./settings');
 const { createMainWindow, getMainWindow, lockDownSession } = require('./window');
 const { createDocuments } = require('./documents');
 const { createSaving } = require('./saving');
+const { createPageDialogs } = require('./page-dialogs');
 const { createSignatureLibrary } = require('./signature-library');
 const { buildMenu } = require('./menu');
 const { registerIpc } = require('./ipc');
@@ -76,7 +77,8 @@ function start() {
     allowWrite: saving.allowWrite,
   });
   const signatures = createSignatureLibrary(path.join(app.getPath('userData'), 'signatures'));
-  registerIpc({ settings, documents, saving, signatures, systemFonts: createSystemFonts(), getWindow: getMainWindow });
+  const pageDialogs = createPageDialogs({ getWindow: getMainWindow, allowWrite: saving.allowWrite });
+  registerIpc({ settings, documents, saving, pageDialogs, signatures, systemFonts: createSystemFonts(), getWindow: getMainWindow });
   lockDownSession();
   refreshMenu();
 

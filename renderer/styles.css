@@ -196,3 +196,9 @@ body.editing-text .edit-line:hover { background: rgba(137, 178, 222, .18); outli
 .text-bar .italic { font-style: italic; font-family: serif; }
 
 .notice { position: fixed; z-index: 20; bottom: 20px; left: 50%; transform: translateX(-50%); max-width: min(560px, 90vw); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; box-shadow: 0 6px 20px rgba(0, 0, 0, .5); font-size: 13px; }
+
+.thumb.selected canvas { box-shadow: 0 0 0 2px var(--accent); }
+.thumb.selected .thumb-label { background: var(--accent); color: var(--accent-fg); border-radius: 8px; padding: 0 8px; }
+.thumb-drop { position: absolute; left: 6px; right: 6px; height: 3px; margin-top: -2px; background: var(--accent); border-radius: 2px; pointer-events: none; }
+.split-dialog { text-align: left; width: min(360px, 94vw); }
+.split-dialog input { width: 72px; margin-left: 8px; font: inherit; background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 4px; padding: 4px 6px; }

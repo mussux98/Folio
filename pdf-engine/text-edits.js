@@ -278,5 +278,12 @@ export function createTextEdits(doc, withPage) {
     knownFonts = null;
   }
 
-  return { lineAt, listFonts, replace, swap, hasWholeFonts: () => wholeFonts };
+  // Pages were added, removed or moved, so what was read from them by position is stale.
+  function forgetPages() {
+    drawn.clear();
+    scanned.clear();
+    knownFonts = null;
+  }
+
+  return { lineAt, listFonts, replace, swap, forgetPages, hasWholeFonts: () => wholeFonts };
 }

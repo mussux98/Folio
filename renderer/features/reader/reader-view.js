@@ -11,8 +11,9 @@ import { mountKeys } from './keys.js';
 // Everything shown for one ready document: toolbar, sidebar and the pages.
 // start is where the tab was last time ({ top, zoom }), if it was open before.
 // signing is { signLayer(args), openMenu() } from the signatures feature, and
-// textEditing is { editLayer(args), toggle() } from the text editing feature.
-export function createReaderView({ tab, entry, engine, store, folio, start, signing, textEditing }) {
+// textEditing is { editLayer(args), toggle() } from the text editing feature, and
+// pageTools is { move(indexes, gap), remove() } from the page tools.
+export function createReaderView({ tab, entry, engine, store, folio, start, signing, textEditing, pageTools }) {
   const tabId = tab.id;
   const pageCount = entry.sizes.length / 2;
 
@@ -25,7 +26,7 @@ export function createReaderView({ tab, entry, engine, store, folio, start, sign
   const toolbar = createToolbar({
     tabId, pageCount, store, viewer, find, print, openSignMenu: signing.openMenu, toggleTextEditing: textEditing.toggle,
   });
-  const thumbnails = createThumbnails({ entry, engine, store, tabId, viewer });
+  const thumbnails = createThumbnails({ entry, engine, store, tabId, viewer, pageTools });
   const sidebar = createSidebar({
     store,
     panels: {

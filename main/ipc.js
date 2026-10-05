@@ -1,9 +1,9 @@
 const { ipcMain, shell } = require('electron');
 const channels = require('../shared/ipc-channels');
-const { parseSession, parseView, parseExternalLink, parseNames, parseWrite, parseSignaturePng, parseFontRequest } = require('./validate');
+const { parseSession, parseView, parseExternalLink, parseNames, parseWrite, parseSignaturePng, parseFontRequest, parsePartsRequest } = require('./validate');
 const { readPdf } = require('./pdf-path');
 
-function registerIpc({ settings, documents, saving, signatures, systemFonts, getWindow }) {
+function registerIpc({ settings, documents, saving, pageDialogs, signatures, systemFonts, getWindow }) {
   // Only the Folio window may talk to the main process.
   const fromWindow = (event) => event.sender === getWindow()?.webContents;
 
@@ -75,6 +75,13 @@ function registerIpc({ settings, documents, saving, signatures, systemFonts, get
     } catch {
       return null;
     }
+  });
+
+  ipcMain.handle(channels.PAGES_PICK_FILES, (event) => (fromWindow(event) ? pageDialogs.pickPdfs() : []));
+
+  ipcMain.handle(channels.PAGES_PICK_PARTS, (event, current, count) => {
+    const ok = fromWindow(event) && parsePartsRequest(current, count);
+    return ok ? pageDialogs.choosePartPaths(current, count) : null;
   });
 
   ipcMain.on(channels.DIRTY_SET, (event, value) => {

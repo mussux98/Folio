@@ -49,9 +49,21 @@ function buildMenu({ recent, actions }) {
         { type: 'separator' },
         { label: 'Edit Text', accelerator: 'CmdOrCtrl+E', click: () => actions.command('edit-text') },
         { label: 'Sign…', click: () => actions.command('sign') },
+      ],
+    },
+    {
+      label: 'Pages',
+      submenu: [
+        { label: 'Rotate Right', accelerator: 'CmdOrCtrl+R', click: () => actions.command('rotate-right') },
+        { label: 'Rotate Left', accelerator: 'CmdOrCtrl+Shift+R', click: () => actions.command('rotate-left') },
         { type: 'separator' },
-        { label: 'Rotate Page Right', accelerator: 'CmdOrCtrl+R', click: () => actions.command('rotate-right') },
-        { label: 'Rotate Page Left', accelerator: 'CmdOrCtrl+Shift+R', click: () => actions.command('rotate-left') },
+        { label: 'Delete Pages', click: () => actions.command('delete-pages') },
+        { label: 'Insert Blank Page', click: () => actions.command('insert-blank') },
+        { label: 'Insert Pages from File…', click: () => actions.command('insert-from-file') },
+        { label: 'Merge Files…', click: () => actions.command('merge-files') },
+        { type: 'separator' },
+        { label: 'Extract Pages…', click: () => actions.command('extract-pages') },
+        { label: 'Split Document…', click: () => actions.command('split-document') },
       ],
     },
     {

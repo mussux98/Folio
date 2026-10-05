@@ -2,7 +2,8 @@
 // time, so a save never catches an edit half done and quick Ctrl+Z presses
 // undo one edit each. A command is { pages, execute(), undo() } (rule 16).
 // reader.documentOf(tabId) gives { engine, docId }; reader.pagesChanged()
-// redraws the pages an edit touched.
+// redraws the pages an edit touched, and reader.pagesRestructured(tabId, page)
+// when pages were added, removed or moved (the command's view says where to land).
 export function createEditing({ store, reader, folio }) {
   const queues = new Map(); // tab id -> the last step queued
 
@@ -14,11 +15,19 @@ export function createEditing({ store, reader, folio }) {
 
   const tabOf = (id) => store.getState().tabs.find((tab) => tab.id === id);
 
+  // Redraws what a command changed. which is 'execute' or 'undo'.
+  function show(tabId, command, which) {
+    if (!command.view) return reader.pagesChanged(tabId, command.pages);
+    const { page, select } = command.view[which];
+    store.setSelection(tabId, select);
+    return reader.pagesRestructured(tabId, page);
+  }
+
   function run(tabId, command) {
     return inTurn(tabId, async () => {
       await command.execute();
       store.recordEdit(tabId, command);
-      reader.pagesChanged(tabId, command.pages);
+      await show(tabId, command, 'execute');
     });
   }
 
@@ -28,7 +37,7 @@ export function createEditing({ store, reader, folio }) {
       if (!command) return;
       await command.undo();
       store.stepHistory(tabId, -1);
-      reader.pagesChanged(tabId, command.pages);
+      await show(tabId, command, 'undo');
     });
   }
 
@@ -38,7 +47,7 @@ export function createEditing({ store, reader, folio }) {
       if (!command) return;
       await command.execute();
       store.stepHistory(tabId, 1);
-      reader.pagesChanged(tabId, command.pages);
+      await show(tabId, command, 'execute');
     });
   }
 

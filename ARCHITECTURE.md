@@ -16,6 +16,7 @@ main/                 main process: windows, menus, file I/O, dialogs, settings,
   pdf-path.js         checks a path is a real PDF, reads command-line files
   settings.js         settings.json in userData (recent, views, session)
   signature-library.js  saved signature pictures in userData/signatures
+  page-dialogs.js     file and folder questions for the page tools; part-paths.js names split files
   validate.js         checks what the renderer sends (rule 5)
   ipc.js              IPC handlers
   preload.js          exposes only the functions listed in shared/ipc-channels.js
@@ -29,6 +30,7 @@ renderer/             the window UI
   commands/           undo/redo command objects
 pdf-engine/           the ONLY code that talks to MuPDF.js
   engine.js           the MuPDF calls (also run directly by the tests)
+  pages.js            delete, reorder, insert and copy out pages
   worker.js           runs engine.js in a Web Worker
   client.js           the app's side: queue, priorities, cancellation
 tests/

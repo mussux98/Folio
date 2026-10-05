@@ -271,3 +271,18 @@ test('Save As moves the tab to the new file', async () => {
   const [tab] = store.getState().tabs;
   assert.deepStrictEqual([tab.path, tab.name], ['D:\\new\\copy.pdf', 'copy.pdf']);
 });
+
+test('picked pages are kept in order, and commands work on them or else on the page in view', async () => {
+  const { targetPages } = await load();
+  const { store, ids } = await storeWith('a.pdf');
+  const tab = () => store.getState().tabs[0];
+  assert.deepStrictEqual(targetPages(tab()), [0]);
+  store.setSelection(ids[0], [3, 1]);
+  assert.deepStrictEqual(tab().selected, [1, 3]);
+  assert.deepStrictEqual(targetPages(tab()), [1, 3]);
+  const before = store.getState();
+  store.setSelection(ids[0], [1, 3]);
+  assert.strictEqual(store.getState(), before, 'the same picks change nothing');
+  store.setSelection(ids[0], []);
+  assert.deepStrictEqual(targetPages(tab()), [0]);
+});

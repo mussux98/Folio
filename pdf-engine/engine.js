@@ -6,6 +6,7 @@ import { findInLine } from './fuzzy-search.js';
 import { inReadingOrder } from './reading-order.js';
 import { createSignatures } from './signatures.js';
 import { createTextEdits } from './text-edits.js';
+import { createPages } from './pages.js';
 
 const MAX_SNIPPET = 120;
 
@@ -13,6 +14,7 @@ export function createEngine() {
   let nextId = 1;
   const documents = new Map();
   const textEdits = new Map(); // document id -> its text changes, kept for undo
+  const pageTools = new Map(); // document id -> its removed pages, kept for undo
 
   function get(id) {
     const doc = documents.get(id);
@@ -56,6 +58,7 @@ export function createEngine() {
     documents.get(id)?.destroy();
     documents.delete(id);
     textEdits.delete(id);
+    pageTools.delete(id);
   }
 
   // [width, height] for every page, as one flat array.
@@ -193,6 +196,23 @@ export function createEngine() {
     });
   }
 
+  // Pages: delete, reorder, insert and copy out.
+  function pagesOf(id) {
+    if (!pageTools.has(id)) pageTools.set(id, createPages(get(id)));
+    return pageTools.get(id);
+  }
+  // Changing the page structure makes anything text editing learned by position stale.
+  function restructured(id, result) {
+    textEdits.get(id)?.forgetPages();
+    return result;
+  }
+  const deletePages = (id, indexes) => restructured(id, pagesOf(id).remove(indexes));
+  const restorePages = (id, token) => restructured(id, pagesOf(id).restore(token));
+  const arrangePages = (id, order) => restructured(id, pagesOf(id).arrange(order));
+  const addBlankPage = (id, at, size) => restructured(id, pagesOf(id).addBlank(at, size));
+  const insertPagesFrom = (id, at, bytes, indexes) => restructured(id, pagesOf(id).insertFrom(at, bytes, indexes));
+  const extractPages = (id, indexes) => pagesOf(id).extract(indexes);
+
   // Signatures: each call works on one page and returns plain data.
   const signatures = (id) => createSignatures(get(id), (index, task) => withPage(id, index, task));
   const addSignature = (id, index, png, rect) => signatures(id).add(index, png, rect);
@@ -246,7 +266,7 @@ export function createEngine() {
 
   return {
     openDocument, authenticate, closeDocument, pageSizes, renderPage, getText, searchPage, getLinks, getOutline,
-    pageTransform, rotatePage, addSignature, moveSignature, removeSignature, listSignatures, signaturePicture,
+    pageTransform, rotatePage, deletePages, restorePages, arrangePages, addBlankPage, insertPagesFrom, extractPages, addSignature, moveSignature, removeSignature, listSignatures, signaturePicture,
     textLineAt, documentFonts, replaceText, swapText, save,
   };
 }
