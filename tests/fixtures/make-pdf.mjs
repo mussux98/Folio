@@ -4,7 +4,13 @@ import * as mupdf from '../../node_modules/mupdf/dist/mupdf.js';
 import { writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-const escape = (text) => text.replace(/[\()]/g, '\$&');
+// Letters outside ASCII become octal escapes, which the font reads as Latin-1.
+function escape(text) {
+  return [...text].map((c) => {
+    if (c === '\\' || c === '(' || c === ')') return `\\${c}`;
+    return c.charCodeAt(0) > 127 ? `\\${c.charCodeAt(0).toString(8)}` : c;
+  }).join('');
+}
 
 // pages: an array of strings (one line of text each) or { text, size: [w, h], rotate }.
 // options.password encrypts the file; options.outline is [{ title, page }];

@@ -2,6 +2,7 @@
 // and the tests load it directly in Node. Positions are in PDF points,
 // measured from the top-left corner of the page as it is displayed.
 import * as mupdf from '../node_modules/mupdf/dist/mupdf.js';
+import { findInLine } from './fuzzy-search.js';
 
 const MAX_SNIPPET = 120;
 
@@ -99,31 +100,38 @@ export function createEngine() {
     return withPage(id, index, textLines);
   }
 
-  const boxOf = (quad) => {
-    const xs = [quad[0], quad[2], quad[4], quad[6]];
-    const ys = [quad[1], quad[3], quad[5], quad[7]];
-    const x = Math.min(...xs);
-    const y = Math.min(...ys);
-    return { x, y, w: Math.max(...xs) - x, h: Math.max(...ys) - y };
-  };
+  // The characters of every text line on a page, with where each one is drawn.
+  function charLines(page) {
+    const text = page.toStructuredText('preserve-whitespace');
+    const lines = [];
+    let current = null;
+    try {
+      text.walk({
+        beginLine() { current = []; },
+        onChar(c, _origin, _font, _size, quad) { current.push({ c, quad }); },
+        endLine() {
+          if (current.length) lines.push(current);
+          current = null;
+        },
+      });
+    } finally {
+      text.destroy();
+    }
+    return lines;
+  }
 
-  const snippetFor = (box, lines) => {
-    const cx = box.x + box.w / 2;
-    const cy = box.y + box.h / 2;
-    const line = lines.find((l) => cx >= l.x && cx <= l.x + l.w && cy >= l.y && cy <= l.y + l.h);
-    return (line?.text ?? '').trim().slice(0, MAX_SNIPPET);
-  };
-
-  // Every match on one page: the boxes to highlight and a line of context.
+  // Every match on one page: the box to highlight and the line it is in.
+  // Case, accents and stray accent marks are ignored (see fuzzy-search.js).
   function searchPage(id, index, needle) {
     return withPage(id, index, (page) => {
-      const hits = page.search(needle, {});
-      if (!hits.length) return [];
-      const lines = textLines(page);
-      return hits.map((quads) => {
-        const rects = quads.map(boxOf);
-        return { rects, snippet: snippetFor(rects[0], lines) };
-      });
+      const hits = [];
+      for (const chars of charLines(page)) {
+        const boxes = findInLine(chars, needle);
+        if (!boxes.length) continue;
+        const snippet = chars.map((char) => char.c).join('').trim().slice(0, MAX_SNIPPET);
+        for (const box of boxes) hits.push({ rects: [box], snippet });
+      }
+      return hits;
     });
   }
 

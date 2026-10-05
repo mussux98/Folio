@@ -93,3 +93,14 @@ test('a closed document can no longer be used', async () => {
   engine.closeDocument(id);
   assert.throws(() => engine.pageSizes(id), /no longer open/);
 });
+
+test('search ignores case, accents and stray accent marks', async () => {
+  const { engine, makePdf } = await load();
+  const { id } = engine.openDocument(makePdf(['Café del MAR, esta` listo']));
+  const count = (needle) => engine.searchPage(id, 0, needle).length;
+  assert.strictEqual(count('cafe'), 1);
+  assert.strictEqual(count('CAFÉ'), 1);
+  assert.strictEqual(count('esta'), 1);
+  assert.strictEqual(count('está'), 1);
+  assert.strictEqual(count('missing'), 0);
+});

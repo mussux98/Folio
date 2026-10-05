@@ -8,7 +8,7 @@ body {
   background: var(--bg); color: var(--fg); font-size: 14px; overflow: hidden;
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
 }
-#app { height: 100%; display: grid; grid-template-rows: auto 1fr; }
+#app { height: 100%; display: grid; grid-template: auto minmax(0, 1fr) / minmax(0, 1fr); }
 body.dropping #content { outline: 2px dashed var(--accent); outline-offset: -8px; }
 
 button { font: inherit; color: inherit; cursor: pointer; }
@@ -33,7 +33,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .tab.active.gap-after { box-shadow: inset -2px 0 0 var(--accent), inset 0 2px 0 var(--accent); }
 
 /* Content */
-#content { background: var(--desk); display: grid; place-items: center; overflow: hidden; min-height: 0; }
+#content { background: var(--desk); display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); place-items: center; overflow: hidden; min-height: 0; min-width: 0; }
 .empty { text-align: center; }
 .empty h1 { margin: 0 0 8px; font-size: 28px; font-weight: 600; }
 .empty p { margin: 0 0 20px; color: var(--muted); }
@@ -49,8 +49,8 @@ button.primary { background: var(--accent); color: var(--accent-fg); border: 0; 
 .status-card p.status-error { margin: 12px 0 0; color: #e69a9a; min-height: 1.2em; }
 
 /* Reader */
-.reader { width: 100%; height: 100%; display: grid; grid-template-rows: auto 1fr; min-height: 0; align-self: stretch; justify-self: stretch; }
-.reader-body { display: flex; min-height: 0; }
+.reader { width: 100%; height: 100%; min-width: 0; display: grid; grid-template: auto minmax(0, 1fr) / minmax(0, 1fr); min-height: 0; align-self: stretch; justify-self: stretch; }
+.reader-body { display: flex; min-height: 0; min-width: 0; }
 
 .toolbar { display: flex; align-items: center; gap: 6px; padding: 4px 10px; background: var(--surface); border-bottom: 1px solid var(--line); }
 .tool { background: transparent; border: 0; border-radius: 4px; min-width: 28px; height: 28px; padding: 0 8px; color: var(--fg); }
