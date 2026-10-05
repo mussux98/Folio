@@ -53,7 +53,7 @@ test('editing a line replaces it in place and leaves the next line alone', async
   const { engine, makePdf } = await load();
   const { id } = engine.openDocument(makePdf(['Hello world\nSecond line']));
   const { font } = edit(engine, id, { x: 40, y: 45 }, 'Goodbye world');
-  assert.strictEqual(font, 'Helvetica');
+  assert.deepStrictEqual(font, { name: 'Helvetica', kind: 'standard' });
   assert.deepStrictEqual(texts(engine, id), ['Goodbye world', 'Second line']);
   const line = engine.textLineAt(id, 0, { x: 40, y: 45 });
   assert.deepStrictEqual(line.origin, { x: 20, y: 50 });
@@ -139,7 +139,7 @@ test('new text can be added anywhere, on several lines, in a chosen style', asyn
     area: null, text: 'First\nSecond', origin: { x: 50, y: 200 }, size: 10,
     font: { family: 'serif', bold: true, italic: false }, color: [1, 0, 0],
   });
-  assert.strictEqual(font, 'Times-Bold');
+  assert.deepStrictEqual(font, { name: 'Times-Bold', kind: 'standard' });
   assert.deepStrictEqual(texts(engine, id), ['Hello world', 'First', 'Second']);
   const added = engine.textLineAt(id, 0, { x: 55, y: 196 });
   assert.deepStrictEqual(added.color, [1, 0, 0]);
@@ -162,4 +162,78 @@ test('signatures on the page survive a text edit', async () => {
   engine.addSignature(id, 0, png, { x: 20, y: 30, w: 100, h: 30 });
   edit(engine, id, { x: 40, y: 45 }, 'Signed');
   assert.strictEqual(engine.listSignatures(id, 0).length, 1);
+});
+
+// The fonts a saved file holds, by the names they have in it.
+function fontNames(mupdf, bytes) {
+  const doc = mupdf.Document.openDocument(bytes, 'application/pdf');
+  const names = [];
+  for (let num = 1; num < doc.countObjects(); num++) {
+    const obj = doc.newIndirect(num);
+    if (obj.isDictionary() && obj.get('Type').asName() === 'Font' && obj.get('Subtype').asName() !== 'CIDFontType0' && obj.get('Subtype').asName() !== 'CIDFontType2') {
+      names.push(obj.get('BaseFont').asName());
+    }
+  }
+  return names;
+}
+
+const fixtures = () => import('./fixtures/make-pdf.mjs');
+
+test('an edit that uses only letters the file has keeps its own font', async () => {
+  const { mupdf, engine } = await load();
+  const { makeSubsetPdf } = await fixtures();
+  const { id } = engine.openDocument(makeSubsetPdf('Dear Mr Brown,'));
+  const line = engine.textLineAt(id, 0, { x: 40, y: 45 });
+  assert.match(line.font.id, /^[A-Z]{6}\+/);
+  const { font } = engine.replaceText(id, 0, { ...line, text: 'Dear Mr Bown,', reuse: [line.font.id] });
+  assert.strictEqual(font.kind, 'file');
+  assert.deepStrictEqual(texts(engine, id), ['Dear Mr Bown,']);
+  assert.deepStrictEqual(fontNames(mupdf, engine.save(id)), [line.font.id]);
+});
+
+test('a space the subset lacks becomes a gap, and still reads as a space', async () => {
+  const { engine } = await load();
+  const { makeSubsetPdf } = await fixtures();
+  const { id } = engine.openDocument(makeSubsetPdf('Total'));
+  const line = engine.textLineAt(id, 0, { x: 30, y: 45 });
+  const { font } = engine.replaceText(id, 0, { ...line, text: 'To lo', reuse: [line.font.id] });
+  assert.strictEqual(font.kind, 'file');
+  assert.deepStrictEqual(texts(engine, id), ['To lo']);
+});
+
+test('a letter the subset lacks uses the installed font, cut down on Save', async () => {
+  const { mupdf, engine } = await load();
+  const { makeSubsetPdf, fontFile } = await fixtures();
+  const { id } = engine.openDocument(makeSubsetPdf('Dear Mr Brown,'));
+  const line = engine.textLineAt(id, 0, { x: 40, y: 45 });
+  const bytes = fontFile('Times-Roman');
+  const installed = { key: 'times', family: 'Times', bytes, index: 0 };
+  const { font } = engine.replaceText(id, 0, { ...line, text: 'Dear Ms Green,', reuse: [line.font.id], installed });
+  assert.strictEqual(font.kind, 'installed');
+  assert.deepStrictEqual(texts(engine, id), ['Dear Ms Green,']);
+  const saved = engine.save(id);
+  assert.ok(saved.length < bytes.length / 2, `saved ${saved.length} bytes, font is ${bytes.length}`);
+  const again = engine.openDocument(saved).id;
+  assert.deepStrictEqual(texts(engine, again), ['Dear Ms Green,']);
+});
+
+test('with neither font usable the closest standard font is used', async () => {
+  const { engine } = await load();
+  const { makeSubsetPdf } = await fixtures();
+  const { id } = engine.openDocument(makeSubsetPdf('Dear Mr Brown,'));
+  const line = engine.textLineAt(id, 0, { x: 40, y: 45 });
+  const { font } = engine.replaceText(id, 0, { ...line, text: 'Dear Ms Green,', reuse: [line.font.id] });
+  assert.deepStrictEqual(font, { name: 'Times-Roman', kind: 'standard' });
+  assert.deepStrictEqual(texts(engine, id), ['Dear Ms Green,']);
+});
+
+test('the fonts a document uses are listed, without the standard ones', async () => {
+  const { engine, makePdf } = await load();
+  const { makeSubsetPdf } = await fixtures();
+  const { id } = engine.openDocument(makeSubsetPdf('Dear Mr Brown,'));
+  const fonts = engine.documentFonts(id);
+  assert.strictEqual(fonts.length, 1);
+  assert.match(fonts[0].id, /^[A-Z]{6}\+/);
+  assert.strictEqual(fonts[0].family, 'serif');
+  assert.deepStrictEqual(engine.documentFonts(engine.openDocument(makePdf(['Hi'])).id), []);
 });

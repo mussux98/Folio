@@ -46,6 +46,29 @@ export function makePdf(pages, options = {}) {
   return doc.saveToBuffer(saveOptions).asUint8Array();
 }
 
+// The font file MuPDF has for a name, as a program would find it installed.
+export function fontFile(name) {
+  const doc = new mupdf.PDFDocument();
+  const descriptor = doc.addFont(new mupdf.Font(name)).get('DescendantFonts').get(0).get('FontDescriptor');
+  const file = ['FontFile2', 'FontFile3', 'FontFile'].map((key) => descriptor.get(key)).find((obj) => obj.isStream());
+  return file.readStream().asUint8Array().slice();
+}
+
+// One line of text in an embedded font cut down to the letters it uses, like
+// the files Word or a browser write. The font is MuPDF's copy of fontName.
+export function makeSubsetPdf(text, fontName = 'Times-Roman') {
+  const doc = new mupdf.PDFDocument();
+  const font = new mupdf.Font(fontName);
+  const fonts = doc.newDictionary();
+  fonts.put('F1', doc.addFont(font));
+  const resources = doc.newDictionary();
+  resources.put('Font', fonts);
+  const codes = [...text].map((c) => font.encodeCharacter(c.codePointAt(0)).toString(16).padStart(4, '0')).join('');
+  doc.insertPage(-1, doc.addPage([0, 0, 300, 400], 0, resources, `BT /F1 18 Tf 20 350 Td <${codes}> Tj ET`));
+  doc.subsetFonts();
+  return doc.saveToBuffer('garbage,compress').asUint8Array().slice();
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const pages = Array.from({ length: 1000 }, (_, i) => `Page ${i + 1} of 1000. Lorem ipsum dolor sit amet.`);
   writeFileSync(fileURLToPath(new URL('./big-1000.pdf', import.meta.url)), makePdf(pages));

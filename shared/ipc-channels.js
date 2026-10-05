@@ -15,6 +15,7 @@ module.exports = Object.freeze({
   SIGNATURES_LIST: 'signatures:list',
   SIGNATURES_ADD: 'signatures:add',
   SIGNATURES_REMOVE: 'signatures:remove',
+  FONTS_FIND: 'fonts:find',
   // renderer -> main, fire and forget
   SESSION_SAVE: 'session:save',
   VIEW_SAVE: 'view:save',

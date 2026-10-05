@@ -66,4 +66,11 @@ function parseSignaturePng(value) {
   return PNG_MAGIC.every((byte, i) => value[i] === byte) ? value : null;
 }
 
-module.exports = { parseSignaturePng, parseSession, parseView, parseExternalLink, parseNames, parseWrite };
+// A request for an installed font: { name, bold, italic }.
+function parseFontRequest(value) {
+  if (!value || typeof value.name !== 'string' || !value.name || value.name.length > 128) return null;
+  if (typeof value.bold !== 'boolean' || typeof value.italic !== 'boolean') return null;
+  return { name: value.name, bold: value.bold, italic: value.italic };
+}
+
+module.exports = { parseFontRequest, parseSignaturePng, parseSession, parseView, parseExternalLink, parseNames, parseWrite };

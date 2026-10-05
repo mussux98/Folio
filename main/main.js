@@ -7,6 +7,7 @@ const { createSaving } = require('./saving');
 const { createSignatureLibrary } = require('./signature-library');
 const { buildMenu } = require('./menu');
 const { registerIpc } = require('./ipc');
+const { createSystemFonts } = require('./system-fonts');
 const { pdfPathsFromArgv } = require('./pdf-path');
 const { MENU_COMMAND } = require('../shared/ipc-channels');
 
@@ -75,7 +76,7 @@ function start() {
     allowWrite: saving.allowWrite,
   });
   const signatures = createSignatureLibrary(path.join(app.getPath('userData'), 'signatures'));
-  registerIpc({ settings, documents, saving, signatures, getWindow: getMainWindow });
+  registerIpc({ settings, documents, saving, signatures, systemFonts: createSystemFonts(), getWindow: getMainWindow });
   lockDownSession();
   refreshMenu();
 

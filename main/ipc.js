@@ -1,9 +1,9 @@
 const { ipcMain, shell } = require('electron');
 const channels = require('../shared/ipc-channels');
-const { parseSession, parseView, parseExternalLink, parseNames, parseWrite, parseSignaturePng } = require('./validate');
+const { parseSession, parseView, parseExternalLink, parseNames, parseWrite, parseSignaturePng, parseFontRequest } = require('./validate');
 const { readPdf } = require('./pdf-path');
 
-function registerIpc({ settings, documents, saving, signatures, getWindow }) {
+function registerIpc({ settings, documents, saving, signatures, systemFonts, getWindow }) {
   // Only the Folio window may talk to the main process.
   const fromWindow = (event) => event.sender === getWindow()?.webContents;
 
@@ -65,6 +65,17 @@ function registerIpc({ settings, documents, saving, signatures, getWindow }) {
   });
 
   ipcMain.handle(channels.SIGNATURES_REMOVE, (event, id) => (fromWindow(event) && typeof id === 'string' ? signatures.remove(id) : false));
+
+  // The installed font a PDF names, for text edits; null when there is none.
+  ipcMain.handle(channels.FONTS_FIND, async (event, value) => {
+    const request = fromWindow(event) && parseFontRequest(value);
+    if (!request) return null;
+    try {
+      return await systemFonts.find(request.name, request.bold, request.italic);
+    } catch {
+      return null;
+    }
+  });
 
   ipcMain.on(channels.DIRTY_SET, (event, value) => {
     const names = fromWindow(event) && parseNames(value);

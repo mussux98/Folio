@@ -186,6 +186,7 @@ body.editing-text .edit-line:hover { background: rgba(137, 178, 222, .18); outli
 .text-error { bottom: auto; top: calc(100% + 6px / var(--z)); font-size: calc(12px / var(--z)); padding: calc(4px / var(--z)) calc(8px / var(--z)); background: #6b2626; color: #fff; border-radius: calc(5px / var(--z)); }
 .text-editor.below .text-error { top: auto; bottom: calc(100% + 6px / var(--z)); }
 .text-bar > * { font: inherit; height: calc(26px / var(--z)); background: var(--surface); color: var(--fg); border: calc(1px / var(--z)) solid var(--line); border-radius: calc(5px / var(--z)); padding: 0 calc(6px / var(--z)); }
+.text-bar select { max-width: calc(170px / var(--z)); }
 .text-bar input[type=number] { width: calc(56px / var(--z)); }
 .text-bar input[type=color] { width: calc(32px / var(--z)); padding: calc(2px / var(--z)); }
 .text-bar button { min-width: calc(28px / var(--z)); }

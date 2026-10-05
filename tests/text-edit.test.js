@@ -6,7 +6,7 @@ function fakeEngine() {
   const calls = [];
   return {
     calls,
-    replaceText: async (docId, index, edit) => { calls.push(['replace', index, edit.text]); return { key: 7, font: 'Helvetica' }; },
+    replaceText: async (docId, index, edit) => { calls.push(['replace', index, edit.text]); return { key: 7, font: { name: 'Helvetica', kind: 'standard' } }; },
     swapText: async (docId, key, which) => { calls.push(['swap', key, which]); },
   };
 }
@@ -17,7 +17,7 @@ test('a text change runs once, then undo and redo swap it', async () => {
   const command = changeText({ engine, docId: 1 }, 2, { text: 'Hi' });
   assert.deepStrictEqual(command.pages, [2]);
   await command.execute();
-  assert.strictEqual(command.font, 'Helvetica');
+  assert.deepStrictEqual(command.font, { name: 'Helvetica', kind: 'standard' });
   await command.undo();
   await command.execute();
   assert.deepStrictEqual(engine.calls, [['replace', 2, 'Hi'], ['swap', 7, 'before'], ['swap', 7, 'after']]);
@@ -63,4 +63,29 @@ test('WinAnsi holds Latin-1 and the Windows extras, and nothing else', async () 
   assert.deepStrictEqual(winAnsiBytes('Aé€’'), [0x41, 0xe9, 0x80, 0x92]);
   assert.strictEqual(winAnsiBytes('Ω'), null);
   assert.strictEqual(winAnsiBytes('a\nb'), null);
+});
+
+test('font names from PDFs read as people know them, and the face counts as style', async () => {
+  const { readableFont, sameStyle, DEFAULT_STYLE } = await import('../renderer/features/text-edit/style.js');
+  assert.strictEqual(readableFont('ABCDEF+TimesNewRomanPS-BoldMT'), 'Times New Roman');
+  assert.strictEqual(readableFont('ArialMT'), 'Arial');
+  assert.strictEqual(readableFont('Calibri,Bold'), 'Calibri');
+  assert.strictEqual(sameStyle({ ...DEFAULT_STYLE, face: 'Calibri' }, DEFAULT_STYLE), false);
+});
+
+test('document fonts are offered by the names people know, own line first when its style is kept', async () => {
+  const { documentFaces, fontsToReuse } = await import('../renderer/features/text-edit/faces.js');
+  const fonts = [
+    { id: 'AAAAAA+Calibri', family: 'sans', bold: false, italic: false },
+    { id: 'BBBBBB+Calibri-Bold', family: 'sans', bold: true, italic: false },
+    { id: 'CCCCCC+Calibri', family: 'sans', bold: false, italic: false },
+  ];
+  const line = { font: { id: 'CCCCCC+Calibri', family: 'sans', bold: false, italic: false } };
+  const faces = documentFaces(fonts, line);
+  assert.deepStrictEqual([...faces.keys()], ['Calibri']);
+  const plain = { bold: false, italic: false };
+  assert.deepStrictEqual(fontsToReuse(faces.get('Calibri'), plain, line), ['CCCCCC+Calibri', 'AAAAAA+Calibri']);
+  assert.deepStrictEqual(fontsToReuse(faces.get('Calibri'), { bold: true, italic: false }, line), ['BBBBBB+Calibri-Bold']);
+  const lonely = { font: { id: 'DDDDDD+Garamond', family: 'serif', bold: false, italic: false } };
+  assert.deepStrictEqual([...documentFaces(fonts, lonely).keys()], ['Calibri', 'Garamond']);
 });

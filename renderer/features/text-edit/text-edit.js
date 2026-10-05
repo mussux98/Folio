@@ -2,7 +2,9 @@ import { changeText } from '../../commands/text-edit.js';
 import { createNotice } from '../notice.js';
 import { buildEditLayer } from './edit-layer.js';
 import { openEditor } from './editor.js';
-import { DEFAULT_STYLE, sameStyle, fontLabel } from './style.js';
+import { DEFAULT_STYLE, sameStyle, fontLabel, readableFont } from './style.js';
+import { installedFont } from './installed-fonts.js';
+import { documentFaces, fontsToReuse } from './faces.js';
 
 const ASCENT = 0.8; // of the font size: from the top of a new box to its first baseline
 
@@ -13,9 +15,9 @@ const HINT = 'Click a line to change it, or click anywhere else to add text. '
 
 // Editing the text of a page. While it is on, a click on a line opens it in an
 // editor, and a click anywhere else starts a new text box. Every change is an
-// undoable command run through editing (rule 16). For now the text is always
-// written with the closest standard font, and the user is told when that is
-// not the font the line had.
+// undoable command run through editing (rule 16). The font list offers the
+// document's own fonts and the standard ones; an edited line starts in its own
+// font. The user is told when the closest standard font had to be used instead.
 export function createTextEditing({ reader, editing }) {
   const notice = createNotice();
   let on = false;
@@ -32,22 +34,36 @@ export function createTextEditing({ reader, editing }) {
     else notice.hide();
   }
 
-  function editFor(line, at, text, style) {
+  // A face from the document is written with the file's copy when it has every
+  // letter, else the installed one (the engine decides).
+  async function editFor(line, at, text, style, faces) {
     const font = { family: style.family, bold: style.bold, italic: style.italic };
-    const base = { text, size: style.size, font, color: style.color };
-    if (line) return { ...base, area: line.area, origin: line.origin };
-    return { ...base, area: null, origin: { x: at.x, y: at.y + style.size * ASCENT } };
+    const face = style.face ? faces.get(style.face) : null;
+    const base = {
+      text,
+      size: style.size,
+      font,
+      color: style.color,
+      reuse: face ? fontsToReuse(face, style, line) : [],
+      installed: face ? await installedFont(face.fonts[0].id, style) : null,
+    };
+    if (!line) return { ...base, area: null, origin: { x: at.x, y: at.y + style.size * ASCENT } };
+    return { ...base, area: line.area, origin: line.origin, space: line.space };
   }
 
-  function tellFont(line, font) {
-    if (line && !line.standard && font) {
-      notice.show(`Written in ${fontLabel(font)}, the closest standard font. Folio can't reuse the font "${line.font.name}" yet.`);
+  function tellFont(line, style, font) {
+    if (style.face && !line?.standard && font?.kind === 'standard') {
+      notice.show(`Written in ${fontLabel(font.name)}, the closest standard font. The file holds only some letters of `
+        + `"${style.face}" (or another style of it), and that font is not installed on this computer.`);
     }
   }
 
   // line is what the engine found under the click, or null for a new box at the point.
-  function startEditor({ tabId, index, layer, line, point }) {
-    const style = line ? { ...line.font, size: line.size, color: line.color } : newStyle;
+  // faces: the document's fonts (see faces.js).
+  function startEditor({ tabId, index, layer, line, point, faces }) {
+    const style = line
+      ? { ...line.font, size: line.size, color: line.color, face: readableFont(line.font.id) }
+      : { ...newStyle, face: faces.has(newStyle.face) ? newStyle.face : null };
     const at = line ? { x: line.x, y: line.y, w: line.w, h: line.h } : { x: point.x, y: point.y, w: 40, h: style.size * 1.2 };
     const text = line ? line.text : '';
     let busy = false;
@@ -66,10 +82,10 @@ export function createTextEditing({ reader, editing }) {
       if (!doc) return close();
       busy = true;
       try {
-        const command = changeText(doc, index, editFor(line, at, value.text, value.style));
+        const command = changeText(doc, index, await editFor(line, at, value.text, value.style, faces));
         await editing.run(tabId, command);
         if (!line) newStyle = value.style;
-        tellFont(line, command.font);
+        tellFont(line, value.style, command.font);
         close();
       } catch (err) {
         editor.showError(err.message);
@@ -78,7 +94,8 @@ export function createTextEditing({ reader, editing }) {
       }
     }
 
-    const editor = openEditor({ layer, at, text, style, multiline: !line, onFinish: (save) => report(finish(save)) });
+    const offered = [...faces.values()].map(({ label, family }) => ({ label, family }));
+    const editor = openEditor({ layer, at, text, style, faces: offered, multiline: !line, onFinish: (save) => report(finish(save)) });
     open = { editor, finish };
   }
 
@@ -92,7 +109,8 @@ export function createTextEditing({ reader, editing }) {
       notice.show('Folio can only change text that runs straight across the page.');
       return;
     }
-    if (on && !open && layer.isConnected) startEditor({ tabId, index, layer, line, point });
+    const faces = documentFaces(await doc.engine.documentFonts(doc.docId), line);
+    if (on && !open && layer.isConnected) startEditor({ tabId, index, layer, line, point, faces });
   }
 
   // The layer for one page, built with the page's text layer.

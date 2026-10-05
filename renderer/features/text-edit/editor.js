@@ -11,14 +11,21 @@ function control(tag, title, props = {}) {
   return el;
 }
 
+const FACE = 'face:'; // font list values of the document's fonts start with this
+
 // The bar over the editor that changes the style. onChange gets the new style.
-function buildBar(style, onChange, onDone) {
+// The font list offers the document's fonts (faces: [{ label, family }]) first,
+// then the standard families.
+function buildBar(style, faces, onChange, onDone) {
   const bar = document.createElement('div');
   bar.className = 'text-bar';
 
   const family = control('select', 'Font');
-  for (const [value, label] of FAMILIES) family.append(Object.assign(document.createElement('option'), { value, textContent: label }));
-  family.value = style.family;
+  const option = (value, textContent) => family.append(Object.assign(document.createElement('option'), { value, textContent }));
+  for (const { label } of faces) option(FACE + label, label);
+  for (const [value, label] of FAMILIES) option(value, label);
+  family.value = style.face ? FACE + style.face : style.family;
+  const picked = () => faces.find(({ label }) => FACE + label === family.value) ?? null;
   const size = control('input', 'Size in points', { type: 'number', min: MIN_SIZE, max: MAX_SIZE, step: 0.5, value: String(Math.round(style.size * 2) / 2) });
   const bold = control('button', 'Bold', { textContent: 'B', className: 'bold' });
   const italic = control('button', 'Italic', { textContent: 'I', className: 'italic' });
@@ -26,7 +33,8 @@ function buildBar(style, onChange, onDone) {
   const done = control('button', 'Done (Enter)', { textContent: 'Done', className: 'done' });
 
   const read = () => ({
-    family: family.value,
+    family: picked()?.family ?? family.value,
+    face: picked()?.label ?? null,
     bold: bold.classList.contains('on'),
     italic: italic.classList.contains('on'),
     size: Math.min(MAX_SIZE, Math.max(MIN_SIZE, Number(size.value) || style.size)),
@@ -52,8 +60,9 @@ function buildBar(style, onChange, onDone) {
 // An editing box placed over a page's edit layer, in points.
 // at: { x, y, w, h } where the box goes (w and h are the least it takes up).
 // multiline: Enter starts a new line, and Ctrl+Enter finishes.
+// faces: the document's fonts for the font list, [{ label, family }].
 // onFinish(save) is called on Enter, Done or Esc; the caller then closes it.
-export function openEditor({ layer, at, text, style, multiline, onFinish }) {
+export function openEditor({ layer, at, text, style, faces = [], multiline, onFinish }) {
   const el = document.createElement('div');
   el.className = at.y < BAR_ROOM ? 'text-editor below' : 'text-editor';
   el.style.left = `${at.x}px`;
@@ -71,7 +80,7 @@ export function openEditor({ layer, at, text, style, multiline, onFinish }) {
     current = next;
     Object.assign(field.style, cssOf(next));
   };
-  const { bar } = buildBar(style, apply, () => onFinish(true));
+  const { bar } = buildBar(style, faces, apply, () => onFinish(true));
   apply(style);
 
   field.addEventListener('keydown', (event) => {

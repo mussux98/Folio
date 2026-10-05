@@ -55,10 +55,11 @@ Split in two so each half is tested on its own.
 - Known limits stated in the UI: text that reflows across lines, and scanned pages (no real text).
 - **Finished and tested, including in Edge and Acrobat.** Edit Text button, Edit → Edit Text or Ctrl+E. Enter or Done keeps a change, Esc cancels it, and emptying a line deletes it. Undo swaps the page's old content back in. Save leaves out everything no page uses any more, so the removed text and unused fonts are gone from the file. Text outside WinAnsi embeds MuPDF's copy of the standard font. Characters no standard font has are refused with a message. Only horizontal text can be edited, and longer text grows to the right even when the original was centered.
 
-#### 1e-ii. Reuse embedded fonts · ⬜
+#### 1e-ii. Reuse embedded fonts · ✅
 - Reuse the line's embedded font when it contains the needed characters, so edits keep the original look (e.g. Arial or Calibri). Otherwise keep the standard font and the notice.
 - Known limit to state in the UI: subset fonts missing characters.
 - **Done when:** text edits on typical documents (letters, invoices, forms) save cleanly and look right in other readers.
+- **Finished and tested.** An edited line keeps its font: the file's own copy when every letter is drawn with it somewhere in the document, else the same font installed on this computer (found by name in the system font folders, only if its maker allows embedding), else the closest standard font with a notice. The font list offers the document's fonts by name, then Sans, Serif and Mono, for edited lines and new text boxes. Installed fonts go in whole and Save keeps only the letters used. Spaces a subset lacks are written as gaps of the line's own space width.
 
 ### 1f. Release v1.0 for Windows · **Sonnet** · ⬜
 - electron-builder NSIS installer, file association for `.pdf` (optional, asked at install), app icon.
@@ -83,6 +84,8 @@ Mac `open-file` event, `hiddenInset` title bar, Mac menus, Apple Developer ID si
 
 ## Later improvements (not scheduled)
 - **Edit images that are part of the page:** a scanned signature, a logo or a flattened signature is page content, not a stamp, so it can't be moved like one. Delete would remove the image with a MuPDF redaction (with a warning, since it can touch what lies under it). Move and resize would lift the image into a stamp and redact the original. It can't separate a signature merged into a full-page scan. Best done after 1e, which also changes page content. Model: **Opus**.
+- **Any installed font when editing text:** a font picker with search, each name shown in its own font. The chosen font is embedded and cut down on Save. Today the font list offers the document's own fonts plus Sans, Serif and Mono.
+- **Bundled look-alike fonts:** ship Liberation Sans/Serif/Mono, Carlito and Caladea (OFL/Apache, about 3–5 MB). They have the same letter widths as Arial, Times, Courier, Calibri and Cambria, so edits keep the layout when the file's subset lacks a letter and the font isn't installed (most of all on Mac).
 - **Faster printing:** printing renders every page at 150 dpi before the dialog opens, so big files are slow. Ask for a page range first and render only those pages.
 
 ## Open decisions

@@ -209,13 +209,18 @@ export function createEngine() {
   const textLineAt = (id, index, point) => texts(id).lineAt(index, point);
   const replaceText = (id, index, edit) => texts(id).replace(index, edit);
   const swapText = (id, key, which) => texts(id).swap(key, which);
+  const documentFonts = (id) => texts(id).listFonts();
 
   // The whole file with every edit. A full rewrite: saving incrementally a
   // second time from the same document produces a broken file. garbage leaves
   // out what no page uses any more, such as the text an edit removed.
   function save(id) {
     // New pictures (signatures) and edited pages are stored raw until compressed here.
-    const buffer = get(id).saveToBuffer('garbage,compress,compress-images=yes');
+    const bytes = toBytes(get(id).saveToBuffer('garbage,compress,compress-images=yes'));
+    return textEdits.get(id)?.hasWholeFonts() ? subsetted(bytes) : bytes;
+  }
+
+  function toBytes(buffer) {
     try {
       return buffer.asUint8Array().slice();
     } finally {
@@ -223,9 +228,25 @@ export function createEngine() {
     }
   }
 
+  // Installed fonts go into the file whole. Here a copy of the saved file keeps
+  // only the letters it uses, so the document being edited still has them all.
+  // If that fails, the whole fonts are saved.
+  function subsetted(bytes) {
+    let copy = null;
+    try {
+      copy = mupdf.Document.openDocument(bytes, 'application/pdf').asPDF();
+      copy.subsetFonts();
+      return toBytes(copy.saveToBuffer('garbage,compress'));
+    } catch {
+      return bytes;
+    } finally {
+      copy?.destroy();
+    }
+  }
+
   return {
     openDocument, authenticate, closeDocument, pageSizes, renderPage, getText, searchPage, getLinks, getOutline,
     pageTransform, rotatePage, addSignature, moveSignature, removeSignature, listSignatures, signaturePicture,
-    textLineAt, replaceText, swapText, save,
+    textLineAt, documentFonts, replaceText, swapText, save,
   };
 }

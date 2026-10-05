@@ -14,21 +14,27 @@ export function standardFont({ family, bold, italic }) {
   return (FAMILIES[family] ?? FAMILIES.sans)[(bold ? 1 : 0) + (italic ? 2 : 0)];
 }
 
-// What a font in the file looks like: { name, family, bold, italic }. The flags in
-// many files are wrong or missing, so the name is checked too.
-export function styleOf(font) {
-  const name = font.getName().replace(/^[A-Z]{6}\+/, '');
+// What a font looks like: { name, family, bold, italic }, from its name in the
+// file and its flags. The flags in many files are wrong or missing, so the
+// name is checked too.
+export function styleOfName(fullName, flags) {
+  const name = fullName.replace(/^[A-Z]{6}\+/, '');
   const plain = name.toLowerCase();
   let family = 'sans';
-  if (font.isMono() || /courier|mono|consol/.test(plain)) family = 'mono';
-  else if (!/sans/.test(plain) && (font.isSerif() || /times|serif|roman|georgia|garamond|cambria|palatino|bookman|antiqua/.test(plain))) family = 'serif';
+  if (flags.mono || /courier|mono|consol/.test(plain)) family = 'mono';
+  else if (!/sans/.test(plain) && (flags.serif || /times|serif|roman|georgia|garamond|cambria|palatino|bookman|antiqua/.test(plain))) family = 'serif';
   return {
     name,
     family,
-    bold: font.isBold() || /bold|black|heavy|semibold|demi/.test(plain),
-    italic: font.isItalic() || /italic|oblique/.test(plain),
+    bold: flags.bold || /bold|black|heavy|semibold|demi/.test(plain),
+    italic: flags.italic || /italic|oblique/.test(plain),
   };
 }
+
+// The style of a font MuPDF has loaded.
+export const styleOf = (font) => styleOfName(font.getName(), {
+  mono: font.isMono(), serif: font.isSerif(), bold: font.isBold(), italic: font.isItalic(),
+});
 
 export const looksStandard = (name) => SAME_LOOK.test(name.toLowerCase().replace(/[^a-z]/g, ''));
 
