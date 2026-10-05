@@ -10,7 +10,7 @@ const KEEP = 3;
 
 // The page thumbnails in the sidebar. Like the main scroll, only the ones near
 // the view are drawn; the rest are empty boxes of the right size.
-// pageTools is { move(indexes, gap), remove() }.
+// pageTools is { move(indexes, gap), remove(), copy(), cut(), paste() }.
 export function createThumbnails({ entry, engine, store, tabId, viewer, pageTools }) {
   const { docId } = entry;
   let sizes = entry.sizes;
@@ -53,6 +53,14 @@ export function createThumbnails({ entry, engine, store, tabId, viewer, pageTool
   mountDrag({
     scroller, surface, items, store, tabId, selection, getLayout: () => layout, move: pageTools.move,
   });
+
+  // Copy, cut and paste (keys or Edit menu) work on pages while a thumbnail has focus.
+  for (const name of ['copy', 'cut', 'paste']) {
+    scroller.addEventListener(name, (event) => {
+      event.preventDefault();
+      pageTools[name]();
+    });
+  }
 
   scroller.addEventListener('keydown', (event) => {
     const command = event.ctrlKey || event.metaKey;

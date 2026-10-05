@@ -108,7 +108,7 @@ export function createReader({ container, store, folio }) {
         tab, entry, engine: getEngine(), store, folio, start: lastSpot.get(tab.id),
         signing: { signLayer: (args) => signing.layerFor(args), openMenu: () => signing.openMenu() },
         textEditing: { editLayer: (args) => textEditing.layerFor(args), toggle: () => textEditing.toggle() },
-        pageTools: { move: (...args) => pageTools.move(...args), remove: () => pageTools.remove() },
+        pageTools: Object.fromEntries(['move', 'remove', 'copy', 'cut', 'paste'].map((name) => [name, (...args) => pageTools[name](...args)])),
       });
       mounted.view = view;
       container.replaceChildren(view.element);

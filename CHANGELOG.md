@@ -4,7 +4,7 @@ All notable changes to Folio are documented here. Format follows Keep a Changelo
 
 ## [Unreleased]
 ### Added
-- Page tools in a new Pages menu: delete, insert a blank page, insert pages from other PDFs, merge files, extract pages to a new file, split into several files. Thumbnails can be picked and dragged to reorder pages. Rotate now turns every picked page. All of it can be undone, except writing the extracted and split files.
+- Page tools in a new Pages menu: delete, insert a blank page, insert pages from other PDFs, copy, cut and paste pages between tabs (Ctrl+C, Ctrl+X, Ctrl+V on the thumbnails, or the Pages menu), merge files, extract pages to a new file, split into several files. Thumbnails can be picked and dragged to reorder pages. Rotate now turns every picked page. All of it can be undone, except writing the extracted and split files.
 
 ## [1.0.0] - 2026-10-05
 ### Added

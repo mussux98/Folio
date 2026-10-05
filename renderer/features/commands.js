@@ -31,6 +31,15 @@ export function runCommand({ store, reader, editing, closing, textEditing, pageT
     case 'delete-pages':
       pageTools.remove();
       break;
+    case 'copy-pages':
+      report(pageTools.copy());
+      break;
+    case 'cut-pages':
+      report(pageTools.cut());
+      break;
+    case 'paste-pages':
+      pageTools.paste();
+      break;
     case 'insert-blank':
       pageTools.insertBlank();
       break;

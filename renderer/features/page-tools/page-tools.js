@@ -13,6 +13,7 @@ const withoutExtension = (path) => path.replace(/\.pdf$/i, '');
 // the document alone.
 export function createPageTools({ store, reader, editing, folio }) {
   const notice = createNotice();
+  let copied = null; // the bytes of a PDF holding the copied pages, for pasting into any tab
 
   // The active tab with its open document, or null when there is nothing to work on.
   function target() {
@@ -47,6 +48,34 @@ export function createPageTools({ store, reader, editing, folio }) {
     if (!here) return;
     const at = here.pages.at(-1) + 1;
     run(here.tab, insertBlankPage(here.doc, at, here.doc.pageSize(at - 1)));
+  }
+
+  async function copy() {
+    const here = target();
+    if (!here) return false;
+    try {
+      copied = await here.doc.engine.extractPages(here.doc.docId, here.pages);
+    } catch (err) {
+      notice.show(err.message);
+      return false;
+    }
+    notice.show(here.pages.length === 1 ? 'Copied 1 page.' : `Copied ${here.pages.length} pages.`, 2500);
+    return true;
+  }
+
+  async function cut() {
+    const here = target();
+    if (!here) return;
+    if (here.pages.length >= here.doc.pageCount) return notice.show('A document needs at least one page.');
+    if (await copy()) remove();
+  }
+
+  // The copied pages go after the picked ones, or after the page in view.
+  function paste() {
+    const here = target();
+    if (!here) return;
+    if (!copied) return notice.show('Copy some pages first.');
+    run(here.tab, insertPagesFromFiles(here.doc, here.pages.at(-1) + 1, [copied]));
   }
 
   // where: 'after' puts the pages after the picked ones, 'end' at the end of the document.
@@ -107,5 +136,5 @@ export function createPageTools({ store, reader, editing, folio }) {
     }
   }
 
-  return { rotate, remove, move, insertBlank, insertFiles, extract, split };
+  return { rotate, remove, move, copy, cut, paste, insertBlank, insertFiles, extract, split };
 }

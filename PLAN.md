@@ -72,6 +72,7 @@ Split in two so each half is tested on its own.
 Rotate, delete, reorder (drag thumbnails), insert, extract, merge PDFs, split.
 - **Built:** a **Pages** menu. Thumbnails can be picked (click, Ctrl/Cmd, Shift, Ctrl+A) and dragged to reorder; Delete key removes the picked pages. Rotate, delete, move, insert blank page, insert pages from files and merge are undoable commands. Extract and split write new files and leave the document alone (split asks pages per file and a folder; it never overwrites).
 - **Tested:** engine, commands, validation and part naming have automated tests. Delete, undo, drag-reorder, insert blank and rotate were driven in the running app. The native file and folder dialogs (insert from file, merge, extract, split) were **not** clicked through by hand; check them once.
+- **Copy, cut and paste pages** (Ctrl+C/X/V with the thumbnails focused, or the Pages menu) work between tabs; the copy stays inside Folio and is lost on quit. Tested in the running app across two tabs.
 - Pages are tracked by position, so these commands rely on undo running in reverse order (it does).
 
 ## Phase 3: Annotations · **Sonnet** (Opus for coordinate-heavy parts) · ⬜
