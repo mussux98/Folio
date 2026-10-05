@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
-const { checkPdfPath, pdfPathsFromArgv } = require('../main/pdf-path.js');
+const { checkPdfPath, readPdf, pdfPathsFromArgv } = require('../main/pdf-path.js');
 
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'folio-pdf-'));
 test.after(() => fs.rmSync(dir, { recursive: true, force: true }));
@@ -69,4 +69,18 @@ test('pdfPathsFromArgv keeps only PDFs and resolves them', () => {
     path.join(workingDir, 'a.pdf'),
     path.join(dir, 'b.PDF'),
   ]);
+});
+
+test('readPdf returns the file bytes and refuses non-PDFs', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'folio-read-'));
+  try {
+    const good = path.join(dir, 'a.pdf');
+    fs.writeFileSync(good, '%PDF-1.4\nhello');
+    assert.strictEqual((await readPdf(good)).toString(), '%PDF-1.4\nhello');
+    const bad = path.join(dir, 'b.pdf');
+    fs.writeFileSync(bad, 'nope');
+    await assert.rejects(readPdf(bad), /not a valid PDF/);
+  } finally {
+    fs.rmSync(dir, { recursive: true });
+  }
 });

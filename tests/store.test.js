@@ -74,7 +74,8 @@ test('closing a background tab keeps the active one', async () => {
 test('closing the only tab leaves nothing active', async () => {
   const { store, ids } = await storeWith('a.pdf');
   store.closeTab(ids[0]);
-  assert.deepStrictEqual(store.getState(), { tabs: [], activeId: null });
+  const { tabs, activeId } = store.getState();
+  assert.deepStrictEqual({ tabs, activeId }, { tabs: [], activeId: null });
 });
 
 test('moveTab reorders by gap, before and after the tab', async () => {
@@ -155,4 +156,39 @@ test('subscribers hear about changes and can unsubscribe', async () => {
   stop();
   store.setView(ids[0], { page: 3 });
   assert.strictEqual(calls, 1);
+});
+
+test('a tab remembers its fit mode, and stepping the zoom turns it off', async () => {
+  const { createStore } = await load();
+  const store = createStore();
+  const id = store.openTab(file('a.pdf', { view: { page: 1, zoom: 1.3, fit: 'width' } }));
+  assert.strictEqual(store.getState().tabs[0].fit, 'width');
+  store.setView(id, { zoom: 1.4 });
+  assert.strictEqual(store.getState().tabs[0].fit, 'width');
+  store.stepZoom(id, 1);
+  assert.strictEqual(store.getState().tabs[0].fit, null);
+});
+
+test('setView does not notify when nothing changed', async () => {
+  const { store, ids } = await storeWith('a.pdf');
+  let calls = 0;
+  store.subscribe(() => calls++);
+  store.setView(ids[0], { page: 1, zoom: 1 });
+  assert.strictEqual(calls, 0);
+});
+
+test('the sidebar can be opened, closed and switched', async () => {
+  const { createStore } = await load();
+  const store = createStore();
+  store.setSidebar({ panel: 'outline' });
+  store.setSidebar({ open: false });
+  assert.deepStrictEqual(store.getState().sidebar, { open: false, panel: 'outline' });
+});
+
+test('opening and closing tabs keeps the sidebar state', async () => {
+  const { store, ids } = await storeWith('a.pdf', 'b.pdf');
+  store.setSidebar({ open: false, panel: 'outline' });
+  store.openTab(file('c.pdf'));
+  store.closeTab(ids[0]);
+  assert.deepStrictEqual(store.getState().sidebar, { open: false, panel: 'outline' });
 });

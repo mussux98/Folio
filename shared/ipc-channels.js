@@ -6,9 +6,12 @@ module.exports = Object.freeze({
   APP_READY: 'app:ready',
   DIALOG_OPEN: 'dialog:open',
   FILE_OPEN: 'file:open',
+  FILE_READ: 'file:read',
+  PRINT_RUN: 'print:run',
   // renderer -> main, fire and forget
   SESSION_SAVE: 'session:save',
   VIEW_SAVE: 'view:save',
+  LINK_OPEN: 'link:open',
   // main -> renderer
   FILE_OPENED: 'file:opened',
   MENU_COMMAND: 'menu:command',

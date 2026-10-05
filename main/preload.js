@@ -11,8 +11,11 @@ contextBridge.exposeInMainWorld('folio', Object.freeze({
   appReady: () => ipcRenderer.invoke('app:ready'),
   openDialog: () => ipcRenderer.invoke('dialog:open'),
   openFile: (path) => ipcRenderer.invoke('file:open', path),
+  readFile: (path) => ipcRenderer.invoke('file:read', path),
+  print: () => ipcRenderer.invoke('print:run'),
   saveSession: (session) => ipcRenderer.send('session:save', session),
   saveView: (view) => ipcRenderer.send('view:save', view),
+  openLink: (url) => ipcRenderer.send('link:open', url),
   onFileOpened: (callback) => listen('file:opened', callback),
   onMenuCommand: (callback) => listen('menu:command', callback),
   // Dropped files have no path in the page; the preload can read it.

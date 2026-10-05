@@ -78,13 +78,13 @@ class Settings {
   }
 
   getView(filePath) {
-    return this.data.views[filePath] ?? { page: 1, zoom: 1 };
+    return this.data.views[filePath] ?? { page: 1, zoom: 1, fit: 'width' };
   }
 
   // Newest entries go last; the oldest are dropped past the limit.
-  setView(filePath, { page, zoom }) {
+  setView(filePath, { page, zoom, fit }) {
     delete this.data.views[filePath];
-    this.data.views[filePath] = { page, zoom };
+    this.data.views[filePath] = fit ? { page, zoom, fit } : { page, zoom };
     const paths = Object.keys(this.data.views);
     for (const old of paths.slice(0, Math.max(0, paths.length - MAX_VIEWS))) {
       delete this.data.views[old];

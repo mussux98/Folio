@@ -6,7 +6,7 @@ export const ZOOM_STEPS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4];
 
 export function createStore() {
   let nextId = 1;
-  let state = { tabs: [], activeId: null };
+  let state = { tabs: [], activeId: null, sidebar: { open: true, panel: 'thumbs' } };
   const listeners = new Set();
 
   function set(next) {
@@ -31,8 +31,9 @@ export function createStore() {
         if (activate) set({ ...state, activeId: existing.id });
         return existing.id;
       }
-      const tab = { id: nextId++, path, name, size, page: view.page, zoom: view.zoom, dirty: false };
+      const tab = { id: nextId++, path, name, size, page: view.page, zoom: view.zoom, fit: view.fit ?? null, dirty: false };
       set({
+        ...state,
         tabs: [...state.tabs, tab],
         activeId: activate || state.activeId === null ? tab.id : state.activeId,
       });
@@ -45,7 +46,7 @@ export function createStore() {
       if (index === -1) return;
       const tabs = state.tabs.filter((tab) => tab.id !== id);
       const activeId = state.activeId === id ? (tabs[index] ?? tabs[index - 1])?.id ?? null : state.activeId;
-      set({ tabs, activeId });
+      set({ ...state, tabs, activeId });
     },
 
     activateTab(id) {
@@ -72,11 +73,26 @@ export function createStore() {
       set({ ...state, activeId: state.tabs[next].id });
     },
 
-    setView(id, { page, zoom }) {
-      const tabs = state.tabs.map((tab) => (tab.id === id
-        ? { ...tab, page: page ?? tab.page, zoom: zoom ?? tab.zoom }
-        : tab));
-      set({ ...state, tabs });
+    // fit is 'width', 'page' or null (a fixed zoom); leave it out to keep it as it is.
+    setView(id, { page, zoom, fit }) {
+      let changed = false;
+      const tabs = state.tabs.map((tab) => {
+        if (tab.id !== id) return tab;
+        const next = {
+          ...tab,
+          page: page ?? tab.page,
+          zoom: zoom ?? tab.zoom,
+          fit: fit === undefined ? tab.fit : fit,
+        };
+        changed = next.page !== tab.page || next.zoom !== tab.zoom || next.fit !== tab.fit;
+        return changed ? next : tab;
+      });
+      if (changed) set({ ...state, tabs });
+    },
+
+    // panel is 'thumbs', 'outline' or 'results'.
+    setSidebar(patch) {
+      set({ ...state, sidebar: { ...state.sidebar, ...patch } });
     },
 
     // direction: +1 zooms in, -1 zooms out, along ZOOM_STEPS.
@@ -86,7 +102,7 @@ export function createStore() {
       const zoom = direction > 0
         ? ZOOM_STEPS.find((step) => step > tab.zoom + 1e-9)
         : [...ZOOM_STEPS].reverse().find((step) => step < tab.zoom - 1e-9);
-      if (zoom) store.setView(id, { zoom });
+      if (zoom) store.setView(id, { zoom, fit: null });
     },
   };
 

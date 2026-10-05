@@ -16,10 +16,10 @@ export function mountSession(store, folio) {
     }
 
     for (const tab of tabs) {
-      const key = `${tab.page}/${tab.zoom}`;
+      const key = `${tab.page}/${tab.zoom}/${tab.fit}`;
       if (lastViews.get(tab.path) === key) continue;
       // The first time a tab is seen, its view came from the saved one.
-      if (lastViews.has(tab.path)) folio.saveView({ path: tab.path, page: tab.page, zoom: tab.zoom });
+      if (lastViews.has(tab.path)) folio.saveView({ path: tab.path, page: tab.page, zoom: tab.zoom, fit: tab.fit });
       lastViews.set(tab.path, key);
     }
   });

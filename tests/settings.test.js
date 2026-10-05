@@ -15,7 +15,7 @@ const newFile = () => path.join(dir, `settings-${counter++}`, 'settings.json');
 test('starts with defaults when there is no file', () => {
   const settings = new Settings(newFile());
   assert.deepStrictEqual(settings.recent, []);
-  assert.deepStrictEqual(settings.getView('C:\\a.pdf'), { page: 1, zoom: 1 });
+  assert.deepStrictEqual(settings.getView('C:\\a.pdf'), { page: 1, zoom: 1, fit: 'width' });
   assert.deepStrictEqual(settings.session, { paths: [], active: null });
 });
 
@@ -30,7 +30,7 @@ test('flush writes the file and a new instance reads it back', () => {
   const file = newFile();
   const first = new Settings(file);
   first.addRecent('C:\\docs\\a.pdf');
-  first.setView('C:\\docs\\a.pdf', { page: 7, zoom: 1.5 });
+  first.setView('C:\\docs\\a.pdf', { page: 7, zoom: 1.5, fit: 'page' });
   first.setSession({ paths: ['C:\\docs\\a.pdf'], active: 'C:\\docs\\a.pdf' });
   first.setWindowState({ x: 10, y: 20, width: 900, height: 700, maximized: true });
   first.flush();
@@ -38,7 +38,7 @@ test('flush writes the file and a new instance reads it back', () => {
 
   const second = new Settings(file);
   assert.deepStrictEqual(second.recent, ['C:\\docs\\a.pdf']);
-  assert.deepStrictEqual(second.getView('C:\\docs\\a.pdf'), { page: 7, zoom: 1.5 });
+  assert.deepStrictEqual(second.getView('C:\\docs\\a.pdf'), { page: 7, zoom: 1.5, fit: 'page' });
   assert.deepStrictEqual(second.session.paths, ['C:\\docs\\a.pdf']);
   assert.deepStrictEqual(second.windowState, { x: 10, y: 20, width: 900, height: 700, maximized: true });
 });
@@ -68,6 +68,6 @@ test('per-file views drop the oldest past the limit', () => {
   const settings = new Settings(newFile());
   for (let i = 0; i < MAX_VIEWS + 3; i++) settings.setView(`C:\\f${i}.pdf`, { page: i + 1, zoom: 1 });
   assert.strictEqual(Object.keys(settings.data.views).length, MAX_VIEWS);
-  assert.deepStrictEqual(settings.getView('C:\\f0.pdf'), { page: 1, zoom: 1 });
+  assert.deepStrictEqual(settings.getView('C:\\f0.pdf'), { page: 1, zoom: 1, fit: 'width' });
   assert.strictEqual(settings.getView(`C:\\f${MAX_VIEWS + 2}.pdf`).page, MAX_VIEWS + 3);
 });

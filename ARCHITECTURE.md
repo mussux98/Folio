@@ -23,10 +23,13 @@ shared/
 renderer/             the window UI
   index.html, styles.css, app.js
   state/              single owner of app state (tabs, documents, view)
-  features/           one module per feature: tabs, viewer, thumbnails, zoom, find,
-                      signatures, text-edit, ...
+  features/           one module per feature: tabs, reader/ (viewer, thumbnails, outline,
+                      find, print, ...), signatures, text-edit, ...
   commands/           undo/redo command objects
-pdf-engine/           the ONLY code that talks to MuPDF.js (runs in a Web Worker)
+pdf-engine/           the ONLY code that talks to MuPDF.js
+  engine.js           the MuPDF calls (also run directly by the tests)
+  worker.js           runs engine.js in a Web Worker
+  client.js           the app's side: queue, priorities, cancellation
 tests/
 ```
 

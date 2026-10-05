@@ -21,7 +21,7 @@ Status key: ⬜ not started · 🟨 in progress · ✅ done
 - Recent files. Remember window size, and the page and zoom per file.
 - **Done when:** several PDFs open in tabs and Folio reopens where you left off. Pages may still be blank.
 
-### 1b. Reader on MuPDF.js · **Sonnet** · ⬜
+### 1b. Reader on MuPDF.js · **Sonnet** · ✅
 - `pdf-engine/` in a Web Worker: open, page count, render page, extract text.
 - Continuous scroll, lazy rendering, cancellation (rules 19–20), thumbnails, zoom (fit width, fit page, %, Ctrl+wheel), page navigation, keyboard shortcuts from the prototype.
 - Text selection and copy, Find with a results list and highlights, the document outline (table of contents), printing.

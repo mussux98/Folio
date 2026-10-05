@@ -2,6 +2,8 @@ const fs = require('fs/promises');
 const path = require('path');
 
 const HEADER_BYTES = 1024;
+// The engine keeps a copy in WebAssembly memory, so very large files are refused.
+const MAX_READ_BYTES = 1024 * 1024 * 1024;
 
 // Checks a path before Folio treats it as a PDF. Returns { path, name, size }
 // or throws an Error whose message can be shown to the user.
@@ -32,6 +34,13 @@ async function checkPdfPath(filePath) {
   }
 }
 
+// Reads a whole PDF into memory; the handle is closed before this returns (rule 13).
+async function readPdf(filePath) {
+  const info = await checkPdfPath(filePath);
+  if (info.size > MAX_READ_BYTES) throw new Error('This file is too large for Folio to open.');
+  return fs.readFile(info.path);
+}
+
 // PDF paths from a command line, resolved against the folder it was started in.
 // Skips flags and the Electron/app entries that come first in a dev run.
 function pdfPathsFromArgv(argv, workingDir) {
@@ -40,4 +49,4 @@ function pdfPathsFromArgv(argv, workingDir) {
     .map((arg) => path.resolve(workingDir, arg));
 }
 
-module.exports = { checkPdfPath, pdfPathsFromArgv };
+module.exports = { checkPdfPath, readPdf, pdfPathsFromArgv, MAX_READ_BYTES };
