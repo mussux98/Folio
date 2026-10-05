@@ -14,8 +14,9 @@ import { mountKeys } from './keys.js';
 // textEditing is { editLayer(args), toggle() } from the text editing feature, and
 // annotating is { annotationLayer(args), markSelection(type), startNote(), startPen(), openShapes(anchor), openStamps(anchor) } from the annotations feature, and
 // forms is { formLayer(args) } from the forms feature, and
+// redacting is { toggle(), boxOption() } from the redaction feature, and
 // pageTools is { move, remove, copy, cut, paste } from the page tools.
-export function createReaderView({ tab, entry, engine, store, folio, start, signing, textEditing, annotating, forms, pageTools }) {
+export function createReaderView({ tab, entry, engine, store, folio, start, signing, textEditing, annotating, forms, redacting, pageTools }) {
   const tabId = tab.id;
   const pageCount = entry.sizes.length / 2;
 
@@ -27,7 +28,7 @@ export function createReaderView({ tab, entry, engine, store, folio, start, sign
 
   const print = () => printDocument({ engine, entry, folio });
   const toolbar = createToolbar({
-    tabId, pageCount, store, viewer, find, print, openSignMenu: signing.openMenu, toggleTextEditing: textEditing.toggle, annotating,
+    tabId, pageCount, store, viewer, find, print, openSignMenu: signing.openMenu, toggleTextEditing: textEditing.toggle, annotating, redacting,
   });
   const thumbnails = createThumbnails({ entry, engine, store, tabId, viewer, pageTools });
   const sidebar = createSidebar({

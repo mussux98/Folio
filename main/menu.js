@@ -48,6 +48,7 @@ function buildMenu({ recent, actions }) {
         { label: 'Find Previous', accelerator: 'Shift+F3', click: () => actions.command('find-previous') },
         { type: 'separator' },
         { label: 'Edit Text', accelerator: 'CmdOrCtrl+E', click: () => actions.command('edit-text') },
+        { label: 'Redact', accelerator: 'CmdOrCtrl+Shift+X', click: () => actions.command('redact') },
         { label: 'Sign…', click: () => actions.command('sign') },
       ],
     },

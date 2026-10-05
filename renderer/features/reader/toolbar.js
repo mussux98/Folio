@@ -18,7 +18,7 @@ function option(value, label) {
 }
 
 // The bar above the pages: sidebar, page number, zoom, search, editing, signing and print.
-export function createToolbar({ tabId, pageCount, store, viewer, find, print, openSignMenu, toggleTextEditing, annotating }) {
+export function createToolbar({ tabId, pageCount, store, viewer, find, print, openSignMenu, toggleTextEditing, annotating, redacting }) {
   const el = document.createElement('div');
   el.className = 'toolbar';
 
@@ -106,6 +106,10 @@ export function createToolbar({ tabId, pageCount, store, viewer, find, print, op
     return mark;
   });
 
+  // Redact acts on the selected text when there is some, so it must not take the selection away either.
+  const redactButton = button('Redact', 'Remove the selected text, or drag over areas to remove (Ctrl+Shift+X)', redacting.toggle, 'redact-button');
+  redactButton.addEventListener('mousedown', (event) => event.preventDefault());
+
   el.append(
     sidebarToggle,
     separator(),
@@ -126,6 +130,8 @@ export function createToolbar({ tabId, pageCount, store, viewer, find, print, op
     ...markButtons,
     separator(),
     button('Edit Text', 'Change or add text (Ctrl+E)', toggleTextEditing, 'edit-text-button'),
+    redactButton,
+    redacting.boxOption(),
     button('Sign', 'Add a signature', openSignMenu, 'sign-button'),
     button('Print', 'Print (Ctrl+P)', print),
   );

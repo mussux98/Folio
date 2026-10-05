@@ -109,6 +109,8 @@ export function createEngineClient() {
     textLineAt: (id, index, point) => call('textLineAt', [id, index, point], { priority: -1 }),
     replaceText: (id, index, edit) => call('replaceText', [id, index, edit], { priority: -1 }),
     swapText: (id, key, which) => call('swapText', [id, key, which], { priority: -1 }),
+    redact: (id, index, spec) => call('redact', [id, index, spec], { priority: -1 }),
+    swapRedaction: (id, key, which) => call('swapRedaction', [id, key, which], { priority: -1 }),
     documentFonts: (id) => call('documentFonts', [id], { priority: -1 }),
     save: (id) => call('save', [id], { priority: -1 }),
     terminate: () => worker.terminate(),

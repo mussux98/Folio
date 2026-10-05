@@ -4,8 +4,8 @@ const isTextField = (el) => el?.matches?.('input, textarea');
 
 // Menu items arrive here by name. Tab and zoom commands change the store,
 // edits and saving go through editing, and the rest belong to the document on
-// screen and go to the reader. app is { store, reader, editing, closing, textEditing, pageTools }.
-export function runCommand({ store, reader, editing, closing, textEditing, pageTools }, name) {
+// screen and go to the reader. app is { store, reader, editing, closing, textEditing, redacting, pageTools }.
+export function runCommand({ store, reader, editing, closing, textEditing, redacting, pageTools }, name) {
   const tab = activeTab(store.getState());
   const report = (promise) => promise.catch((err) => console.error(`${name} failed:`, err));
   switch (name) {
@@ -57,6 +57,9 @@ export function runCommand({ store, reader, editing, closing, textEditing, pageT
       break;
     case 'edit-text':
       if (tab) textEditing.toggle();
+      break;
+    case 'redact':
+      redacting.toggle();
       break;
     case 'close-tab':
       if (tab) closing.closeTab(tab.id);

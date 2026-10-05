@@ -9,6 +9,7 @@ import { createAnnotations } from './annotations.js';
 import { createTextEdits } from './text-edits.js';
 import { createPages } from './pages.js';
 import { createForms } from './forms.js';
+import { createRedactions } from './redactions.js';
 
 const MAX_SNIPPET = 120;
 
@@ -17,6 +18,7 @@ export function createEngine() {
   const documents = new Map();
   const textEdits = new Map(); // document id -> its text changes, kept for undo
   const pageTools = new Map(); // document id -> its removed pages, kept for undo
+  const redactions = new Map(); // document id -> its redactions, kept for undo
 
   function get(id) {
     const doc = documents.get(id);
@@ -61,6 +63,7 @@ export function createEngine() {
     documents.delete(id);
     textEdits.delete(id);
     pageTools.delete(id);
+    redactions.delete(id);
   }
 
   // [width, height] for every page, as one flat array.
@@ -245,6 +248,14 @@ export function createEngine() {
   const swapText = (id, key, which) => texts(id).swap(key, which);
   const documentFonts = (id) => texts(id).listFonts();
 
+  // Redaction: keyed like text changes. What text editing read from the page is stale after it.
+  function redactionsOf(id) {
+    if (!redactions.has(id)) redactions.set(id, createRedactions(get(id), (index, task) => withPage(id, index, task)));
+    return redactions.get(id);
+  }
+  const redact = (id, index, spec) => restructured(id, redactionsOf(id).redact(index, spec));
+  const swapRedaction = (id, key, which) => restructured(id, redactionsOf(id).swap(key, which));
+
   // The whole file with every edit. A full rewrite: saving incrementally a
   // second time from the same document produces a broken file. garbage leaves
   // out what no page uses any more, such as the text an edit removed.
@@ -282,6 +293,6 @@ export function createEngine() {
     openDocument, authenticate, closeDocument, pageSizes, renderPage, getText, searchPage, getLinks, getOutline,
     pageTransform, rotatePage, deletePages, restorePages, arrangePages, addBlankPage, insertPagesFrom, extractPages, addSignature, moveSignature, removeSignature, listSignatures, signaturePicture,
     addAnnotation, changeAnnotation, removeAnnotation, listAnnotations, listFormFields, setFormValue,
-    textLineAt, documentFonts, replaceText, swapText, save,
+    textLineAt, documentFonts, replaceText, swapText, redact, swapRedaction, save,
   };
 }

@@ -34,6 +34,7 @@ pdf-engine/           the ONLY code that talks to MuPDF.js
   annotations.js      text markup (highlight, underline, strikethrough) and sticky notes
   forms.js            form fields: list a page's fields and fill them in
   drawings.js         ink, rectangles, ellipses, lines and arrows, and text stamps
+  redactions.js       true redaction of areas, kept for undo until saved
   worker.js           runs engine.js in a Web Worker
   client.js           the app's side: queue, priorities, cancellation
 tests/

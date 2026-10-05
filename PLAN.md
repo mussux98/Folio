@@ -86,8 +86,14 @@ Fill form fields, save. Flatten was left out on purpose (decided with the user).
 - **Tested:** engine tests on a generated form (`tests/fixtures/make-form.mjs`): list, fill, limits, radio groups, save and reopen, rotated pages. Driven in the running app: typing, Tab across a redraw, checkbox, radio, drop-down, list, undo and Save.
 - **Known limits:** multi-select lists take one choice; on a rotated page the typing box stays upright while the saved text turns with the page; the typing boxes always show (no hide toggle).
 
-## Phase 5: Advanced · **Opus** · ⬜
-True redaction, OCR (Tesseract.js, offline), compression, password protection.
+## Phase 5: Advanced · **Opus** · 🟨 (5a done)
+True redaction, OCR (Tesseract.js, offline), compression, password protection. Split in four, one session each.
+- **5a · true redaction · ✅.** Redact (toolbar, Edit → Redact or Ctrl+Shift+X) removes the selected text at once; with nothing selected it turns on redact mode, where each area dragged over a page is removed. Esc ends it. Text under the area is taken out (not covered), images lose the covered pixels, drawings fully inside it go. A Black box option (on by default) leaves a box in its place. Each redaction is one undo step; Save leaves the removed content out of the file. Selected text is redacted as a band through the middle of each line, since whole line boxes overlap the lines next to them.
+  - **Tested:** engine tests (text gone and back on undo, several areas, box or none, image pixels, saved file, turned page). Driven in the running app: drag with and without box, selected word, Esc, Undo/Redo from the menu, Save, and the saved file checked for the removed words.
+  - **Known limits:** annotations over the area (notes, highlights) are kept; partly covered lines and shapes stay under the box.
+- **5b · password protection · ⬜.** Open protected files, save with a password.
+- **5c · compression · ⬜.** A save option that makes the file smaller.
+- **5d · OCR · ⬜.** Tesseract.js offline, adds an invisible text layer to scanned pages.
 
 ## Phase 6: Mac launch · **Sonnet** · ⬜
 Mac `open-file` event, `hiddenInset` title bar, Mac menus, Apple Developer ID signing and notarization (`@electron/notarize`, $99/year), DMG.

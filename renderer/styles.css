@@ -217,6 +217,13 @@ body.annotating .anno-shape, body.editing-text .anno-shape, body.signing .anno-s
 
 .edit-text-button { white-space: nowrap; }
 body.editing-text .edit-text-button { background: var(--accent); color: var(--accent-fg); }
+.redact-button { white-space: nowrap; }
+body.redacting .redact-button { background: var(--accent); color: var(--accent-fg); }
+.redact-box-option { display: none; align-items: center; gap: 4px; white-space: nowrap; font-size: 12px; color: var(--muted); }
+body.redacting .redact-box-option { display: flex; }
+body.redacting .page { cursor: crosshair; touch-action: none; }
+body.redacting .page > * { pointer-events: none; }
+.redact-draft { position: absolute; z-index: 5; background: rgba(0, 0, 0, .35); outline: 1px dashed #c00; pointer-events: none; }
 .edit-layer { z-index: 3; position: absolute; left: 0; top: 0; transform: scale(var(--z)); transform-origin: 0 0; pointer-events: none; }
 body.editing-text .edit-layer { pointer-events: auto; cursor: text; }
 body.editing-text .sign-layer, body.editing-text .sign-box, body.signing .edit-layer { pointer-events: none; }

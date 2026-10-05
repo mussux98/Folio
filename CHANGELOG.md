@@ -4,6 +4,7 @@ All notable changes to Folio are documented here. Format follows Keep a Changelo
 
 ## [Unreleased]
 ### Added
+- Redaction: select text and press Redact, or press Redact and drag over any part of a page. What is underneath is removed from the file, not just covered: text, the covered part of pictures, and drawings inside the area. A black box is left in its place unless you untick Black box. Undo brings it back until you save.
 - Forms: fill in text fields, checkboxes, radio buttons, drop-down lists and list boxes right on the page. Tab moves to the next field, Esc puts back what was there, each change can be undone, and the answers are written into the PDF on Save (they show in Edge and Acrobat). Read-only fields, signature fields and push buttons are left alone, and scripts in a form (such as calculated totals) are not run.
 - Drawing: Pen for freehand, Shapes for rectangles, ellipses, lines and arrows (Shift for squares, circles and 45° lines), and Stamp for Approved, Draft, Confidential and the other standard stamps. Click a drawing to recolour it, change its thickness, drag it somewhere else or resize it from a corner. Stamps stay upright on turned pages. All of it can be undone.
 - Text markup and sticky notes: select text and choose Highlight, Underline or Strike in the toolbar; Note puts a sticky note where you click. Click markup or a note to change its colour, edit it or delete it. Works on annotations already in the file, and can be undone.
