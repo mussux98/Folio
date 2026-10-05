@@ -44,12 +44,20 @@ Status key: ⬜ not started · 🟨 in progress · ✅ done
 - **Done when:** you can sign a real document, save it, and the signature shows correctly in Edge and Acrobat.
 - **Finished and tested, including in Edge and Acrobat.** A signature is a Stamp annotation (Sign button or Edit → Sign…). Rotating a page after signing it turns the signature with the page. Stamps made by other programs are edited the same way, but turning or replacing one redraws it from its plain picture.
 
-### 1e. Editing existing text · **Opus** · ⬜
-- Click a text line or block to edit it in place, with the original font, size and color where possible.
+### 1e. Editing existing text · **Opus**
+Split in two so each half is tested on its own.
+
+#### 1e-i. Edit lines and add text with standard fonts · ✅
+- Click a text line to edit it in place, with its size, color, bold and italic, and the closest standard font (Helvetica, Times or Courier).
 - With MuPDF.js: remove the original glyphs (true removal, not covering) and write the new text in the same position.
-- Font handling: reuse the embedded font when it contains the needed characters; otherwise fall back to the closest standard font, and tell the user when a fallback is used.
+- Tell the user when the standard font is not the line's own font.
 - Add new text boxes anywhere.
-- Known limits, to state honestly in the UI: subset fonts missing characters, text that reflows across lines, and scanned pages (no real text).
+- Known limits stated in the UI: text that reflows across lines, and scanned pages (no real text).
+- **Finished and tested, including in Edge and Acrobat.** Edit Text button, Edit → Edit Text or Ctrl+E. Enter or Done keeps a change, Esc cancels it, and emptying a line deletes it. Undo swaps the page's old content back in. Save leaves out everything no page uses any more, so the removed text and unused fonts are gone from the file. Text outside WinAnsi embeds MuPDF's copy of the standard font. Characters no standard font has are refused with a message. Only horizontal text can be edited, and longer text grows to the right even when the original was centered.
+
+#### 1e-ii. Reuse embedded fonts · ⬜
+- Reuse the line's embedded font when it contains the needed characters, so edits keep the original look (e.g. Arial or Calibri). Otherwise keep the standard font and the notice.
+- Known limit to state in the UI: subset fonts missing characters.
 - **Done when:** text edits on typical documents (letters, invoices, forms) save cleanly and look right in other readers.
 
 ### 1f. Release v1.0 for Windows · **Sonnet** · ⬜

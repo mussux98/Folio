@@ -10,6 +10,7 @@ import { buildLoadingView, buildErrorView, buildPasswordView } from './status-vi
 export function createReader({ container, store, folio }) {
   let engine = null;
   let signing = null; // set once the signatures feature exists; it needs the reader itself
+  let textEditing = null; // the same for text editing
   const entries = new Map(); // tab id -> entry
   const lastSpot = new Map(); // tab id -> { top, zoom } of a tab that is not showing
 
@@ -105,6 +106,7 @@ export function createReader({ container, store, folio }) {
       const view = createReaderView({
         tab, entry, engine: getEngine(), store, folio, start: lastSpot.get(tab.id),
         signing: { signLayer: (args) => signing.layerFor(args), openMenu: () => signing.openMenu() },
+        textEditing: { editLayer: (args) => textEditing.layerFor(args), toggle: () => textEditing.toggle() },
       });
       mounted.view = view;
       container.replaceChildren(view.element);
@@ -130,6 +132,9 @@ export function createReader({ container, store, folio }) {
   return {
     setSigning(feature) {
       signing = feature;
+    },
+    setTextEditing(feature) {
+      textEditing = feature;
     },
     command: (name) => mounted?.view?.command(name),
     // { engine, docId } for a tab whose document is open, else null.

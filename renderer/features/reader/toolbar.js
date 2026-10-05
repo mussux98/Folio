@@ -17,8 +17,8 @@ function option(value, label) {
   return el;
 }
 
-// The bar above the pages: sidebar, page number, zoom, search, signing and print.
-export function createToolbar({ tabId, pageCount, store, viewer, find, print, openSignMenu }) {
+// The bar above the pages: sidebar, page number, zoom, search, editing, signing and print.
+export function createToolbar({ tabId, pageCount, store, viewer, find, print, openSignMenu, toggleTextEditing }) {
   const el = document.createElement('div');
   el.className = 'toolbar';
 
@@ -108,6 +108,7 @@ export function createToolbar({ tabId, pageCount, store, viewer, find, print, op
     button('▼', 'Next match (Enter)', () => find.next(), 'nav'),
     findCount,
     spacer(),
+    button('Edit Text', 'Change or add text (Ctrl+E)', toggleTextEditing, 'edit-text-button'),
     button('Sign', 'Add a signature', openSignMenu, 'sign-button'),
     button('Print', 'Print (Ctrl+P)', print),
   );

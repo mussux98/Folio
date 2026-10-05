@@ -5,7 +5,7 @@ const sameScale = (a, b) => Math.abs(a - b) < b * 0.01;
 
 // One page in the scroll. It always exists as an empty sheet of the right size;
 // the picture and the text layers are loaded only while the page is near the screen.
-// width and height are in PDF points; actions is { goToPage(n), openLink(url), signLayer(args) }.
+// width and height are in PDF points; actions is { goToPage(n), openLink(url), signLayer(args), editLayer(args) }.
 export function createPageView({ index, width, height, engine, docId, actions }) {
   const el = document.createElement('div');
   el.className = 'page';
@@ -15,7 +15,7 @@ export function createPageView({ index, width, height, engine, docId, actions })
   let drawnScale = 0;
   let render = null; // { scale, cancel } while a picture is being made
   let failedScale = 0;
-  let layers = null; // { cancel } while loading, { text, links } when loaded
+  let layers = null; // { cancel } while loading, { text, links, edit } when loaded
   // The signing layer loads on its own and first in line, so a signature that was just
   // placed or moved can be grabbed at once. { cancel } while loading, { el } when loaded.
   let signing = null;
@@ -65,8 +65,9 @@ export function createPageView({ index, width, height, engine, docId, actions })
         cancel() {},
         text: buildTextLayer(lines, width, height),
         links: buildLinkLayer(areas, width, height, actions),
+        edit: actions.editLayer({ index, lines, width, height }),
       };
-      el.append(layers.text, layers.links);
+      el.append(layers.text, layers.links, layers.edit);
     } catch (err) {
       if (layers === mine) layers = isCancelled(err) ? null : { cancel() {} };
     }
@@ -135,6 +136,7 @@ export function createPageView({ index, width, height, engine, docId, actions })
       drawnScale = 0;
       layers?.text?.remove();
       layers?.links?.remove();
+      layers?.edit?.remove();
       layers = null;
       dropSigning(false);
       staleSigning?.remove();
@@ -153,6 +155,7 @@ export function createPageView({ index, width, height, engine, docId, actions })
       layers?.cancel();
       layers?.text?.remove();
       layers?.links?.remove();
+      layers?.edit?.remove();
       layers = null;
       dropSigning(true);
     },

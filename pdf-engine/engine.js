@@ -5,12 +5,14 @@ import * as mupdf from '../node_modules/mupdf/dist/mupdf.js';
 import { findInLine } from './fuzzy-search.js';
 import { inReadingOrder } from './reading-order.js';
 import { createSignatures } from './signatures.js';
+import { createTextEdits } from './text-edits.js';
 
 const MAX_SNIPPET = 120;
 
 export function createEngine() {
   let nextId = 1;
   const documents = new Map();
+  const textEdits = new Map(); // document id -> its text changes, kept for undo
 
   function get(id) {
     const doc = documents.get(id);
@@ -53,6 +55,7 @@ export function createEngine() {
   function closeDocument(id) {
     documents.get(id)?.destroy();
     documents.delete(id);
+    textEdits.delete(id);
   }
 
   // [width, height] for every page, as one flat array.
@@ -198,11 +201,21 @@ export function createEngine() {
   const listSignatures = (id, index) => signatures(id).list(index);
   const signaturePicture = (id, index, key) => signatures(id).picture(index, key);
 
+  // Text: each change has a key, so undo and redo can swap it out and back in.
+  function texts(id) {
+    if (!textEdits.has(id)) textEdits.set(id, createTextEdits(get(id), (index, task) => withPage(id, index, task)));
+    return textEdits.get(id);
+  }
+  const textLineAt = (id, index, point) => texts(id).lineAt(index, point);
+  const replaceText = (id, index, edit) => texts(id).replace(index, edit);
+  const swapText = (id, key, which) => texts(id).swap(key, which);
+
   // The whole file with every edit. A full rewrite: saving incrementally a
-  // second time from the same document produces a broken file.
+  // second time from the same document produces a broken file. garbage leaves
+  // out what no page uses any more, such as the text an edit removed.
   function save(id) {
-    // New pictures (signatures) are stored raw until compressed here.
-    const buffer = get(id).saveToBuffer('compress-images=yes');
+    // New pictures (signatures) and edited pages are stored raw until compressed here.
+    const buffer = get(id).saveToBuffer('garbage,compress,compress-images=yes');
     try {
       return buffer.asUint8Array().slice();
     } finally {
@@ -212,6 +225,7 @@ export function createEngine() {
 
   return {
     openDocument, authenticate, closeDocument, pageSizes, renderPage, getText, searchPage, getLinks, getOutline,
-    pageTransform, rotatePage, addSignature, moveSignature, removeSignature, listSignatures, signaturePicture, save,
+    pageTransform, rotatePage, addSignature, moveSignature, removeSignature, listSignatures, signaturePicture,
+    textLineAt, replaceText, swapText, save,
   };
 }

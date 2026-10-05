@@ -94,6 +94,9 @@ export function createEngineClient() {
     removeSignature: (id, index, key) => call('removeSignature', [id, index, key], { priority: -1 }),
     signaturePicture: (id, index, key) => call('signaturePicture', [id, index, key], { priority: -1 }),
     listSignatures: (id, index, priority) => request('listSignatures', [id, index], { priority }),
+    textLineAt: (id, index, point) => call('textLineAt', [id, index, point], { priority: -1 }),
+    replaceText: (id, index, edit) => call('replaceText', [id, index, edit], { priority: -1 }),
+    swapText: (id, key, which) => call('swapText', [id, key, which], { priority: -1 }),
     save: (id) => call('save', [id], { priority: -1 }),
     terminate: () => worker.terminate(),
   };

@@ -18,7 +18,8 @@ export function inReadingOrder(lines) {
     const row = [byTop[i++]];
     while (i < byTop.length && byTop[i].top - row[0].top < row[0].size / 2) row.push(byTop[i++]);
     row.sort((a, b) => a.left - b.left);
-    for (const block of row) ordered.push(...block.lines);
+    // An edited line is drawn last but may sit anywhere in its block.
+    for (const block of row) ordered.push(...block.lines.sort((a, b) => a.y - b.y));
   }
   return ordered;
 }

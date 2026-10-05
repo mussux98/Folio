@@ -16,6 +16,7 @@ All notable changes to Folio are documented here. Format follows Keep a Changelo
 - Rotate a page left or right, with undo and redo (Ctrl+Z, Ctrl+Y) for each tab.
 - Save and Save As. The file is written to a temp file first and then swapped in, so a failed save never damages the original; a file in use or read-only gives a clear message.
 - Signatures: draw one with mouse, pen or touch (smoothed, pressure-aware) or import a PNG/JPG with optional white-background removal. Saved signatures are kept on this computer. Click a page to place one, then move, resize (corners), turn, replace with another saved signature or delete it (Delete key), with undo and redo. This works on image stamps already in a file, including earlier sessions and other programs. Signatures are written into the PDF on Save.
+- Edit text (Edit Text button or Ctrl+E): click a line to change or delete it, or click anywhere to add a text box, with font, size, bold, italic and colour. The old text is removed from the file, not covered. Edits use the closest standard font for now, and Folio says when that differs from the original.
 - Unsaved tabs show a dot, and closing a tab, the window or the app asks to save changes.
 
 ## [0.1.0] - 2026-10-05

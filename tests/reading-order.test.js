@@ -14,3 +14,9 @@ test('blocks on one row go left to right, and a block stays together', async () 
   const lines = [line(0, 300, 52, 'right'), line(1, 10, 50, 'left a'), line(1, 10, 62, 'left b'), line(2, 10, 200, 'below')];
   assert.deepStrictEqual(inReadingOrder(lines).map((l) => l.text), ['left a', 'left b', 'right', 'below']);
 });
+
+test('the lines of a block go top to bottom, even one drawn last', async () => {
+  const { inReadingOrder } = await import('../pdf-engine/reading-order.js');
+  const lines = [line(0, 10, 40, 'second'), line(0, 10, 60, 'third'), line(0, 10, 20, 'first (edited)')];
+  assert.deepStrictEqual(inReadingOrder(lines).map((l) => l.text), ['first (edited)', 'second', 'third']);
+});

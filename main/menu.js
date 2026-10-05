@@ -47,6 +47,7 @@ function buildMenu({ recent, actions }) {
         { label: 'Find Next', accelerator: 'F3', click: () => actions.command('find-next') },
         { label: 'Find Previous', accelerator: 'Shift+F3', click: () => actions.command('find-previous') },
         { type: 'separator' },
+        { label: 'Edit Text', accelerator: 'CmdOrCtrl+E', click: () => actions.command('edit-text') },
         { label: 'Sign…', click: () => actions.command('sign') },
         { type: 'separator' },
         { label: 'Rotate Page Right', accelerator: 'CmdOrCtrl+R', click: () => actions.command('rotate-right') },
