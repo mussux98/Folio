@@ -1,55 +1,85 @@
-const { app, BrowserWindow, session } = require('electron');
+const { app, BrowserWindow } = require('electron');
 const path = require('path');
+const { Settings } = require('./settings');
+const { createMainWindow, getMainWindow, lockDownSession } = require('./window');
+const { createDocuments } = require('./documents');
+const { buildMenu } = require('./menu');
+const { registerIpc } = require('./ipc');
+const { pdfPathsFromArgv } = require('./pdf-path');
+const { MENU_COMMAND } = require('../shared/ipc-channels');
 
-const CSP = [
-  "default-src 'self'",
-  "script-src 'self' 'wasm-unsafe-eval'",
-  "style-src 'self'",
-  "img-src 'self' data: blob:",
-  "worker-src 'self' blob:",
-  "connect-src 'self'",
-  "object-src 'none'",
-  "base-uri 'none'",
-  "form-action 'none'",
-].join('; ');
+// Rule 18: one Folio at a time. A second launch hands its files to the first.
+const isFirstInstance = app.requestSingleInstanceLock();
+if (!isFirstInstance) app.quit();
 
-function createWindow() {
-  const win = new BrowserWindow({
-    width: 1200,
-    height: 800,
-    title: 'Folio',
-    webPreferences: {
-      contextIsolation: true,
-      sandbox: true,
-      nodeIntegration: false,
-      preload: path.join(__dirname, 'preload.js'),
-    },
-  });
+let settings;
+let documents;
 
-  // Rule 4: never navigate or open windows inside Folio.
-  win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
-  win.webContents.on('will-navigate', (e) => e.preventDefault());
-
-  win.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
+function openWindow() {
+  const win = createMainWindow(settings);
+  win.on('closed', () => documents.reset());
 }
 
-app.whenReady().then(() => {
-  session.defaultSession.webRequest.onHeadersReceived((details, cb) => {
-    cb({
-      responseHeaders: {
-        ...details.responseHeaders,
-        'Content-Security-Policy': [CSP],
+function refreshMenu() {
+  buildMenu({
+    recent: settings.recent,
+    actions: {
+      openDialog: () => documents.openDialog(),
+      openRecent: (filePath) => documents.openDocument(filePath),
+      clearRecent: () => {
+        settings.clearRecent();
+        refreshMenu();
       },
-    });
+      command: (name) => getMainWindow()?.webContents.send(MENU_COMMAND, name),
+    },
   });
-  // Rule 6: no permission requests (camera, notifications, ...) are granted.
-  session.defaultSession.setPermissionRequestHandler((_wc, _perm, cb) => cb(false));
+}
 
-  createWindow();
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
-  });
+function openFiles(filePaths) {
+  for (const filePath of filePaths) documents.openDocument(filePath);
+}
+
+// Mac: must be registered before the app is ready (rule 17).
+app.on('open-file', (event, filePath) => {
+  event.preventDefault();
+  if (documents) documents.openDocument(filePath);
 });
+
+app.on('second-instance', (_event, argv, workingDir) => {
+  const win = getMainWindow();
+  if (win) {
+    if (win.isMinimized()) win.restore();
+    win.focus();
+  } else {
+    openWindow();
+  }
+  openFiles(pdfPathsFromArgv(argv.slice(1), workingDir));
+});
+
+function start() {
+  settings = new Settings(path.join(app.getPath('userData'), 'settings.json'));
+  documents = createDocuments({
+    settings,
+    getWindow: getMainWindow,
+    openWindow,
+    onRecentChanged: refreshMenu,
+  });
+  registerIpc({ settings, documents, getWindow: getMainWindow });
+  lockDownSession();
+  refreshMenu();
+
+  // Files from the command line wait in the queue until the window is ready.
+  openFiles(pdfPathsFromArgv(process.argv.slice(1), process.cwd()));
+  if (!getMainWindow()) openWindow();
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) openWindow();
+  });
+}
+
+if (isFirstInstance) app.whenReady().then(start);
+
+app.on('before-quit', () => settings?.flush());
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();

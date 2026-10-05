@@ -14,7 +14,7 @@ Status key: ⬜ not started · 🟨 in progress · ✅ done
 - **Done when:** `npm start` opens an empty, secure Folio window, and the first commit is made.
 
 ## Phase 1: First launch (v1.0), reader + text editing + signatures
-### 1a. Shell, tabs, files · **Sonnet** · ⬜
+### 1a. Shell, tabs, files · **Sonnet** · ✅
 - Window, native menu (File, Edit, View, Help), right-click menu with Cut, Copy, Paste and Select All.
 - Tabs: open, close, switch, reorder; each tab has its own document state.
 - Open from the dialog, drag-and-drop, Explorer double-click, and "Open with" (rule 17). Single instance (rule 18).

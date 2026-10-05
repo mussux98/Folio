@@ -9,7 +9,14 @@
 ## Layout
 ```
 main/                 main process: windows, menus, file I/O, dialogs, settings, printing
-  main.js
+  main.js             startup, single instance, wiring
+  window.js           the window, CSP, saved size and position
+  menu.js             native menu
+  documents.js        openDocument(): the one way files get opened (rule 17)
+  pdf-path.js         checks a path is a real PDF, reads command-line files
+  settings.js         settings.json in userData (recent, views, session)
+  validate.js         checks what the renderer sends (rule 5)
+  ipc.js              IPC handlers
   preload.js          exposes only the functions listed in shared/ipc-channels.js
 shared/
   ipc-channels.js     the single list of every IPC message

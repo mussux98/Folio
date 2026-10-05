@@ -1,3 +1,15 @@
 // The single list of every IPC message. If it isn't listed here, it doesn't exist.
-// CommonJS so both the main process and the sandboxed preload can load it.
-module.exports = Object.freeze({});
+// CommonJS so the main process can load it. The sandboxed preload can't require
+// local files, so it repeats these names and a test keeps both lists identical.
+module.exports = Object.freeze({
+  // renderer -> main, awaits a reply
+  APP_READY: 'app:ready',
+  DIALOG_OPEN: 'dialog:open',
+  FILE_OPEN: 'file:open',
+  // renderer -> main, fire and forget
+  SESSION_SAVE: 'session:save',
+  VIEW_SAVE: 'view:save',
+  // main -> renderer
+  FILE_OPENED: 'file:opened',
+  MENU_COMMAND: 'menu:command',
+});
