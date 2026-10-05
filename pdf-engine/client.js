@@ -89,6 +89,11 @@ export function createEngineClient() {
     // Edits and saving go ahead of drawing.
     pageTransform: (id, index) => call('pageTransform', [id, index], { priority: -1 }),
     rotatePage: (id, index, degrees) => call('rotatePage', [id, index, degrees], { priority: -1 }),
+    addSignature: (id, index, png, rect) => call('addSignature', [id, index, png, rect], { priority: -1 }),
+    moveSignature: (id, index, key, rect) => call('moveSignature', [id, index, key, rect], { priority: -1 }),
+    removeSignature: (id, index, key) => call('removeSignature', [id, index, key], { priority: -1 }),
+    signaturePicture: (id, index, key) => call('signaturePicture', [id, index, key], { priority: -1 }),
+    listSignatures: (id, index, priority) => request('listSignatures', [id, index], { priority }),
     save: (id) => call('save', [id], { priority: -1 }),
     terminate: () => worker.terminate(),
   };

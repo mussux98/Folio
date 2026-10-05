@@ -37,11 +37,12 @@ Status key: ⬜ not started · 🟨 in progress · ✅ done
 - **Done when:** a test edit can be undone and redone, saved safely, and survives reopening.
 - **Finished and tested.** The test edit is page rotation (Edit → Rotate Page, Ctrl+R / Ctrl+Shift+R). Save rewrites the whole file: a second incremental save from MuPDF produces a broken file.
 
-### 1d. Signatures · **Sonnet** · ⬜
+### 1d. Signatures · **Sonnet** · ✅
 - Create a signature by drawing (mouse, pen or touch, with smoothing) or by importing an image (PNG/JPG, with optional background removal for white).
 - Saved signatures library, stored locally in `userData`.
-- Place, move, resize and delete a signature on any page, with undo. It is written into the PDF on Save.
+- Place, move, resize, turn (quarter turns), replace and delete a signature on any page, with undo. This works on every image stamp in a file, including ones from earlier sessions and other programs. It is written into the PDF on Save.
 - **Done when:** you can sign a real document, save it, and the signature shows correctly in Edge and Acrobat.
+- **Finished and tested, including in Edge and Acrobat.** A signature is a Stamp annotation (Sign button or Edit → Sign…). Rotating a page after signing it turns the signature with the page. Stamps made by other programs are edited the same way, but turning or replacing one redraws it from its plain picture.
 
 ### 1e. Editing existing text · **Opus** · ⬜
 - Click a text line or block to edit it in place, with the original font, size and color where possible.
@@ -73,6 +74,7 @@ True redaction, OCR (Tesseract.js, offline), compression, password protection.
 Mac `open-file` event, `hiddenInset` title bar, Mac menus, Apple Developer ID signing and notarization (`@electron/notarize`, $99/year), DMG.
 
 ## Later improvements (not scheduled)
+- **Edit images that are part of the page:** a scanned signature, a logo or a flattened signature is page content, not a stamp, so it can't be moved like one. Delete would remove the image with a MuPDF redaction (with a warning, since it can touch what lies under it). Move and resize would lift the image into a stamp and redact the original. It can't separate a signature merged into a full-page scan. Best done after 1e, which also changes page content. Model: **Opus**.
 - **Faster printing:** printing renders every page at 150 dpi before the dialog opens, so big files are slow. Ask for a page range first and render only those pages.
 
 ## Open decisions

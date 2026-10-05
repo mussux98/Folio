@@ -15,6 +15,7 @@ All notable changes to Folio are documented here. Format follows Keep a Changelo
 - Folio remembers window size and position, open tabs, the active tab, and the page and zoom of each file.
 - Rotate a page left or right, with undo and redo (Ctrl+Z, Ctrl+Y) for each tab.
 - Save and Save As. The file is written to a temp file first and then swapped in, so a failed save never damages the original; a file in use or read-only gives a clear message.
+- Signatures: draw one with mouse, pen or touch (smoothed, pressure-aware) or import a PNG/JPG with optional white-background removal. Saved signatures are kept on this computer. Click a page to place one, then move, resize (corners), turn, replace with another saved signature or delete it (Delete key), with undo and redo. This works on image stamps already in a file, including earlier sessions and other programs. Signatures are written into the PDF on Save.
 - Unsaved tabs show a dot, and closing a tab, the window or the app asks to save changes.
 
 ## [0.1.0] - 2026-10-05

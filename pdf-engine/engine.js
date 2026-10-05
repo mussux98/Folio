@@ -4,6 +4,7 @@
 import * as mupdf from '../node_modules/mupdf/dist/mupdf.js';
 import { findInLine } from './fuzzy-search.js';
 import { inReadingOrder } from './reading-order.js';
+import { createSignatures } from './signatures.js';
 
 const MAX_SNIPPET = 120;
 
@@ -189,10 +190,19 @@ export function createEngine() {
     });
   }
 
+  // Signatures: each call works on one page and returns plain data.
+  const signatures = (id) => createSignatures(get(id), (index, task) => withPage(id, index, task));
+  const addSignature = (id, index, png, rect) => signatures(id).add(index, png, rect);
+  const moveSignature = (id, index, key, rect) => signatures(id).move(index, key, rect);
+  const removeSignature = (id, index, key) => signatures(id).remove(index, key);
+  const listSignatures = (id, index) => signatures(id).list(index);
+  const signaturePicture = (id, index, key) => signatures(id).picture(index, key);
+
   // The whole file with every edit. A full rewrite: saving incrementally a
   // second time from the same document produces a broken file.
   function save(id) {
-    const buffer = get(id).saveToBuffer('');
+    // New pictures (signatures) are stored raw until compressed here.
+    const buffer = get(id).saveToBuffer('compress-images=yes');
     try {
       return buffer.asUint8Array().slice();
     } finally {
@@ -202,6 +212,6 @@ export function createEngine() {
 
   return {
     openDocument, authenticate, closeDocument, pageSizes, renderPage, getText, searchPage, getLinks, getOutline,
-    pageTransform, rotatePage, save,
+    pageTransform, rotatePage, addSignature, moveSignature, removeSignature, listSignatures, signaturePicture, save,
   };
 }

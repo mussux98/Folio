@@ -1,9 +1,9 @@
 const { ipcMain, shell } = require('electron');
 const channels = require('../shared/ipc-channels');
-const { parseSession, parseView, parseExternalLink, parseNames, parseWrite } = require('./validate');
+const { parseSession, parseView, parseExternalLink, parseNames, parseWrite, parseSignaturePng } = require('./validate');
 const { readPdf } = require('./pdf-path');
 
-function registerIpc({ settings, documents, saving, getWindow }) {
+function registerIpc({ settings, documents, saving, signatures, getWindow }) {
   // Only the Folio window may talk to the main process.
   const fromWindow = (event) => event.sender === getWindow()?.webContents;
 
@@ -55,6 +55,16 @@ function registerIpc({ settings, documents, saving, getWindow }) {
   ipcMain.handle(channels.WINDOW_CLOSE, (event) => {
     if (fromWindow(event)) saving.closeWindow();
   });
+
+  ipcMain.handle(channels.SIGNATURES_LIST, (event) => (fromWindow(event) ? signatures.list() : []));
+
+  // Resolves to the new id, or null when the picture is unusable or the library is full.
+  ipcMain.handle(channels.SIGNATURES_ADD, async (event, png) => {
+    const clean = fromWindow(event) && parseSignaturePng(png);
+    return clean ? signatures.add(clean) : null;
+  });
+
+  ipcMain.handle(channels.SIGNATURES_REMOVE, (event, id) => (fromWindow(event) && typeof id === 'string' ? signatures.remove(id) : false));
 
   ipcMain.on(channels.DIRTY_SET, (event, value) => {
     const names = fromWindow(event) && parseNames(value);

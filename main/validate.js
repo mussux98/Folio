@@ -7,6 +7,8 @@ const FIT_MODES = ['width', 'page'];
 const MAX_LINK_LENGTH = 4096;
 const MAX_NAMES = 100;
 const MAX_NAME_LENGTH = 260;
+const MAX_SIGNATURE_BYTES = 2 * 1024 * 1024;
+const PNG_MAGIC = [0x89, 0x50, 0x4e, 0x47];
 const MAX_WRITE_BYTES = 2 * 1024 * 1024 * 1024;
 
 const LINK_PROTOCOLS = ['http:', 'https:', 'mailto:'];
@@ -58,4 +60,10 @@ function parseWrite(filePath, bytes) {
   return { filePath, bytes };
 }
 
-module.exports = { parseSession, parseView, parseExternalLink, parseNames, parseWrite };
+// A signature picture: bytes that start like a PNG, small enough to keep.
+function parseSignaturePng(value) {
+  if (!(value instanceof Uint8Array) || value.length < 8 || value.length > MAX_SIGNATURE_BYTES) return null;
+  return PNG_MAGIC.every((byte, i) => value[i] === byte) ? value : null;
+}
+
+module.exports = { parseSignaturePng, parseSession, parseView, parseExternalLink, parseNames, parseWrite };

@@ -5,6 +5,7 @@ import { createEditing } from './features/editing.js';
 import { createClosing } from './features/closing.js';
 import { mountDropOpen } from './features/drop-open.js';
 import { mountSession } from './features/session.js';
+import { createSignatures } from './features/signatures/signatures.js';
 import { runCommand } from './features/commands.js';
 
 const folio = window.folio;
@@ -12,6 +13,7 @@ const store = createStore();
 
 const reader = createReader({ container: document.getElementById('content'), store, folio });
 const editing = createEditing({ store, reader, folio });
+reader.setSigning(createSignatures({ store, reader, editing, folio }));
 const closing = createClosing({ store, editing, folio });
 mountTabs(document.getElementById('tabs'), { store, folio, closeTab: closing.closeTab });
 mountDropOpen(folio);

@@ -83,3 +83,14 @@ test('parseWrite needs an absolute .pdf path and PDF bytes', () => {
   assert.strictEqual(parseWrite(a, new Uint8Array(Buffer.from('MZ not a pdf'))), null);
   assert.strictEqual(parseWrite(a, '%PDF-1.7'), null);
 });
+
+const { parseSignaturePng } = require('../main/validate.js');
+
+test('parseSignaturePng accepts PNG bytes and nothing else', () => {
+  const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1]);
+  assert.strictEqual(parseSignaturePng(png), png);
+  for (const value of [null, 'png', [1, 2, 3], new Uint8Array(20), new Uint8Array(3)]) {
+    assert.strictEqual(parseSignaturePng(value), null);
+  }
+  assert.strictEqual(parseSignaturePng(new Uint8Array(3 * 1024 * 1024).fill(0x89)), null);
+});

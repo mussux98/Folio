@@ -12,6 +12,9 @@ module.exports = Object.freeze({
   DIALOG_ASK_SAVE: 'dialog:ask-save',
   FILE_WRITE: 'file:write',
   WINDOW_CLOSE: 'window:close',
+  SIGNATURES_LIST: 'signatures:list',
+  SIGNATURES_ADD: 'signatures:add',
+  SIGNATURES_REMOVE: 'signatures:remove',
   // renderer -> main, fire and forget
   SESSION_SAVE: 'session:save',
   VIEW_SAVE: 'view:save',

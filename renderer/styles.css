@@ -128,3 +128,45 @@ button.primary { background: var(--accent); color: var(--accent-fg); border: 0; 
   #print-area { display: block; }
   .print-page { display: block; width: 100%; height: 100vh; object-fit: contain; break-after: page; }
 }
+
+/* Signatures */
+.sign-layer { z-index: 2; position: absolute; left: 0; top: 0; transform: scale(var(--z)); transform-origin: 0 0; pointer-events: none; }
+body.signing .sign-layer { pointer-events: auto; cursor: crosshair; }
+.sign-box { position: absolute; pointer-events: auto; cursor: move; user-select: none; touch-action: none; }
+body.signing .sign-box { pointer-events: none; }
+.sign-box:hover, .sign-box.selected { outline: calc(1.5px / var(--z)) solid var(--accent); }
+.sign-handle { display: none; position: absolute; width: calc(10px / var(--z)); height: calc(10px / var(--z)); background: var(--accent); border: calc(1px / var(--z)) solid var(--accent-fg); touch-action: none; }
+.sign-box.selected .sign-handle { display: block; }
+.sign-handle.nw { left: calc(-5px / var(--z)); top: calc(-5px / var(--z)); cursor: nwse-resize; }
+.sign-handle.ne { right: calc(-5px / var(--z)); top: calc(-5px / var(--z)); cursor: nesw-resize; }
+.sign-handle.sw { left: calc(-5px / var(--z)); bottom: calc(-5px / var(--z)); cursor: nesw-resize; }
+.sign-handle.se { right: calc(-5px / var(--z)); bottom: calc(-5px / var(--z)); cursor: nwse-resize; }
+
+.sign-dialog { text-align: left; width: min(620px, 94vw); }
+.sign-tabs { display: flex; gap: 4px; margin-bottom: 12px; }
+.sign-tab { background: transparent; border: 0; border-bottom: 2px solid transparent; padding: 6px 12px; color: var(--muted); }
+.sign-tab.active { color: var(--fg); border-bottom-color: var(--accent); }
+.sign-pad { display: block; width: 100%; aspect-ratio: 56 / 20; background: #fff; border-radius: 6px; touch-action: none; cursor: crosshair; }
+.sign-colors { display: inline-flex; gap: 8px; margin: 10px 12px 0 0; vertical-align: middle; }
+.sign-color { width: 22px; height: 22px; padding: 0; border-radius: 50%; border: 2px solid var(--line); }
+.sign-import { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+.sign-preview { background: #fff; border-radius: 6px; padding: 8px; min-height: 60px; max-width: 100%; }
+.sign-preview canvas { max-width: 100%; max-height: 160px; display: block; }
+.sign-note { margin: 0; color: var(--muted); font-size: 12px; }
+.sign-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+.sign-actions button:disabled { opacity: .5; }
+
+.sign-menu { position: fixed; z-index: 11; width: 240px; max-height: 70vh; overflow: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px; box-shadow: 0 6px 20px rgba(0, 0, 0, .5); }
+.sign-row { display: flex; align-items: center; gap: 4px; margin-bottom: 6px; }
+.sign-pick { flex: 1; background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 6px; }
+.sign-pick:hover { border-color: var(--accent); }
+.sign-pick img { display: block; max-width: 100%; max-height: 56px; margin: 0 auto; }
+.sign-remove { background: transparent; border: 0; border-radius: 4px; color: var(--muted); width: 24px; height: 24px; }
+.sign-remove:hover { background: var(--line); color: var(--fg); }
+.sign-new { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 6px; }
+.sign-actions .primary { background: var(--accent); color: var(--accent-fg); border: 0; }
+.sign-bar { display: none; position: absolute; left: 0; bottom: calc(100% + 6px / var(--z)); gap: calc(4px / var(--z)); white-space: nowrap; cursor: default; }
+.sign-bar.below { bottom: auto; top: calc(100% + 6px / var(--z)); }
+.sign-box.selected .sign-bar { display: flex; }
+.sign-bar button { font-size: calc(13px / var(--z)); height: calc(26px / var(--z)); min-width: calc(28px / var(--z)); padding: 0 calc(8px / var(--z)); background: var(--surface); color: var(--fg); border: calc(1px / var(--z)) solid var(--line); border-radius: calc(5px / var(--z)); }
+.sign-bar button:hover { background: var(--line); }

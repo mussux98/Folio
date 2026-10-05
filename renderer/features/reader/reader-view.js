@@ -10,15 +10,16 @@ import { mountKeys } from './keys.js';
 
 // Everything shown for one ready document: toolbar, sidebar and the pages.
 // start is where the tab was last time ({ top, zoom }), if it was open before.
-export function createReaderView({ tab, entry, engine, store, folio, start }) {
+// signing is { signLayer(args), openMenu() } from the signatures feature.
+export function createReaderView({ tab, entry, engine, store, folio, start, signing }) {
   const tabId = tab.id;
   const pageCount = entry.sizes.length / 2;
 
-  const viewer = createViewer({ tabId, entry, engine, store, folio, start });
+  const viewer = createViewer({ tabId, entry, engine, store, folio, start, signLayer: signing.signLayer });
   const find = createFind({ engine, docId: entry.docId, pageCount, viewer });
 
   const print = () => printDocument({ engine, entry, folio });
-  const toolbar = createToolbar({ tabId, pageCount, store, viewer, find, print });
+  const toolbar = createToolbar({ tabId, pageCount, store, viewer, find, print, openSignMenu: signing.openMenu });
   const thumbnails = createThumbnails({ entry, engine, store, tabId, viewer });
   const sidebar = createSidebar({
     store,
@@ -45,6 +46,7 @@ export function createReaderView({ tab, entry, engine, store, folio, start }) {
   const commands = {
     find: toolbar.focusFind,
     print,
+    sign: signing.openMenu,
     'find-next': find.next,
     'find-previous': find.previous,
   };

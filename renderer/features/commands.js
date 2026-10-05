@@ -56,6 +56,7 @@ export function runCommand({ store, reader, editing, closing }, name) {
     case 'find-next':
     case 'find-previous':
     case 'print':
+    case 'sign':
       reader.command(name);
       break;
     case 'toggle-sidebar':
