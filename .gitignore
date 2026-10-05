@@ -1,0 +1,6 @@
+node_modules/
+dist/
+out/
+*.log
+tests/fixtures/big-1000.pdf
+samples/
