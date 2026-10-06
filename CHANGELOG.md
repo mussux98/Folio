@@ -2,7 +2,7 @@
 
 All notable changes to Folio are documented here. Format follows Keep a Changelog; versions follow Semantic Versioning.
 
-## [Unreleased]
+## [2.0.0] - 2026-10-06
 ### Added
 - Editing text can use any font installed on the computer: the font button in the editor opens a list you can search, with each name shown in its own font. The chosen font is embedded and cut down to the letters used when you save.
 - Edit Images: Edit → Edit Images (or Images in the toolbar) lets you delete a picture that is part of the page, such as a logo or a scanned signature, or drag it somewhere else and resize it. Text over or under it stays. Each change can be undone.
