@@ -276,3 +276,6 @@ body.annotating .form-field, body.editing-text .form-field, body.signing .form-f
 .smaller-dialog h2 { margin: 0 0 8px; font-size: 15px; }
 .smaller-dialog label { display: grid; grid-template-columns: auto 64px 1fr; align-items: center; gap: 6px; margin-top: 10px; }
 .smaller-dialog label span { color: var(--muted); font-size: 12px; }
+.ocr-dialog h3 { margin: 14px 0 0; font-size: 13px; }
+.ocr-dialog label { grid-template-columns: auto 1fr; margin-top: 6px; }
+.ocr-dialog label span { color: inherit; font-size: inherit; }

@@ -23,8 +23,12 @@ export function createEditing({ store, reader, folio }) {
     return reader.pagesRestructured(tabId, page);
   }
 
+  // command may also be a function that makes it in turn (or gives null for no
+  // edit), for work that reads the document first, such as OCR.
   function run(tabId, command) {
     return inTurn(tabId, async () => {
+      if (typeof command === 'function') command = await command();
+      if (!command) return;
       await command.execute();
       store.recordEdit(tabId, command);
       await show(tabId, command, 'execute');

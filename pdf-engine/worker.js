@@ -9,6 +9,7 @@ function transferables(method, result) {
   if (method === 'renderPage') return [result.pixels.buffer];
   if (method === 'pageSizes' || method === 'save' || method === 'extractPages') return [result.buffer];
   if (method === 'saveSmaller') return [result.bytes.buffer];
+  if (method === 'ocrPicture') return [result.png.buffer];
   return [];
 }
 

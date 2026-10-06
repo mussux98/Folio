@@ -114,6 +114,11 @@ export function createEngineClient() {
     documentFonts: (id) => call('documentFonts', [id], { priority: -1 }),
     save: (id) => call('save', [id], { priority: -1 }),
     saveSmaller: (id, quality) => call('saveSmaller', [id, quality], { priority: -1 }),
+    // OCR comes after drawing: it reads one page after another for a while.
+    ocrPicture: (id, index, dpi) => request('ocrPicture', [id, index, dpi], { priority: 10 }),
+    pagesWithoutText: (id, indexes) => call('pagesWithoutText', [id, indexes], { priority: -1 }),
+    addOcrText: (id, index, words) => call('addOcrText', [id, index, words], { priority: -1 }),
+    swapOcrText: (id, key, which) => call('swapOcrText', [id, key, which], { priority: -1 }),
     isProtected: (id) => call('isProtected', [id], { priority: -1 }),
     setProtection: (id, password) => call('setProtection', [id, password], { priority: -1 }),
     terminate: () => worker.terminate(),

@@ -12,6 +12,7 @@ import { createForms } from './forms.js';
 import { createRedactions } from './redactions.js';
 import { createProtection } from './protection.js';
 import { compressed } from './compression.js';
+import { createOcrText } from './ocr.js';
 
 const MAX_SNIPPET = 120;
 
@@ -22,6 +23,7 @@ export function createEngine() {
   const pageTools = new Map(); // document id -> its removed pages, kept for undo
   const redactions = new Map(); // document id -> its redactions, kept for undo
   const protections = new Map(); // document id -> its password setting for the next save
+  const ocrTexts = new Map(); // document id -> the text OCR added, kept for undo
 
   function get(id) {
     const doc = documents.get(id);
@@ -71,6 +73,7 @@ export function createEngine() {
     pageTools.delete(id);
     redactions.delete(id);
     protections.delete(id);
+    ocrTexts.delete(id);
   }
 
   // [width, height] for every page, as one flat array.
@@ -263,6 +266,17 @@ export function createEngine() {
   const redact = (id, index, spec) => restructured(id, redactionsOf(id).redact(index, spec));
   const swapRedaction = (id, key, which) => restructured(id, redactionsOf(id).swap(key, which));
 
+  // OCR: the page as a picture for Tesseract, which pages have no text, and the
+  // invisible text written from what it read. Keyed like text changes.
+  function ocrOf(id) {
+    if (!ocrTexts.has(id)) ocrTexts.set(id, createOcrText(get(id), (index, task) => withPage(id, index, task)));
+    return ocrTexts.get(id);
+  }
+  const ocrPicture = (id, index, dpi) => ocrOf(id).picture(index, dpi);
+  const pagesWithoutText = (id, indexes) => ocrOf(id).withoutText(indexes);
+  const addOcrText = (id, index, words) => restructured(id, ocrOf(id).add(index, words));
+  const swapOcrText = (id, key, which) => restructured(id, ocrOf(id).swap(key, which));
+
   // The whole file with every edit. A full rewrite: saving incrementally a
   // second time from the same document produces a broken file. garbage leaves
   // out what no page uses any more, such as the text an edit removed.
@@ -317,6 +331,6 @@ export function createEngine() {
     pageTransform, rotatePage, deletePages, restorePages, arrangePages, addBlankPage, insertPagesFrom, extractPages, addSignature, moveSignature, removeSignature, listSignatures, signaturePicture,
     addAnnotation, changeAnnotation, removeAnnotation, listAnnotations, listFormFields, setFormValue,
     textLineAt, documentFonts, replaceText, swapText, redact, swapRedaction, save, saveSmaller,
-    setProtection, isProtected,
+    setProtection, isProtected, ocrPicture, pagesWithoutText, addOcrText, swapOcrText,
   };
 }

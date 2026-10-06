@@ -128,3 +128,22 @@ function maskPixmap(width, height) {
   for (let i = 0; i < px.length; i++) px[i] = (i % width) < width / 2 ? 255 : 0;
   return pix;
 }
+
+// A scanned page: the text drawn as a grey picture at dpi, with no text of its own.
+// options.rotate turns the page; options.text adds a real line under the picture.
+export function makeScannedPdf(text, options = {}) {
+  const source = mupdf.Document.openDocument(makePdf([text]), 'application/pdf');
+  const scale = (options.dpi ?? 200) / 72;
+  const pix = source.loadPage(0).toPixmap(mupdf.Matrix.scale(scale, scale), mupdf.ColorSpace.DeviceGray, false);
+  const doc = new mupdf.PDFDocument();
+  const pictures = doc.newDictionary();
+  pictures.put('Im0', doc.addImage(new mupdf.Image(pix)));
+  const resources = doc.newDictionary();
+  resources.put('XObject', pictures);
+  const fonts = doc.newDictionary();
+  fonts.put('F1', doc.addSimpleFont(new mupdf.Font('Helvetica')));
+  resources.put('Font', fonts);
+  const line = options.text ? `BT /F1 10 Tf 20 10 Td (${options.text}) Tj ET ` : '';
+  doc.insertPage(-1, doc.addPage([0, 0, 300, 400], options.rotate ?? 0, resources, `${line}q 300 0 0 400 0 0 cm /Im0 Do Q`));
+  return doc.saveToBuffer('compress').asUint8Array().slice();
+}

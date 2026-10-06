@@ -1,6 +1,7 @@
 import { activeTab } from '../state/store.js';
 import { changePassword } from './password.js';
 import { saveSmallerCopy } from './save-smaller.js';
+import { recognizeText } from './ocr.js';
 
 const isTextField = (el) => el?.matches?.('input, textarea');
 
@@ -68,6 +69,9 @@ export function runCommand({ store, reader, editing, closing, textEditing, redac
       break;
     case 'redact':
       redacting.toggle();
+      break;
+    case 'ocr':
+      report(recognizeText({ store, reader, editing }));
       break;
     case 'close-tab':
       if (tab) closing.closeTab(tab.id);

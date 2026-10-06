@@ -51,6 +51,7 @@ function buildMenu({ recent, actions }) {
         { type: 'separator' },
         { label: 'Edit Text', accelerator: 'CmdOrCtrl+E', click: () => actions.command('edit-text') },
         { label: 'Redact', accelerator: 'CmdOrCtrl+Shift+X', click: () => actions.command('redact') },
+        { label: 'Recognize Text (OCR)…', click: () => actions.command('ocr') },
         { label: 'Sign…', click: () => actions.command('sign') },
       ],
     },

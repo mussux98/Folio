@@ -37,6 +37,10 @@ pdf-engine/           the ONLY code that talks to MuPDF.js
   redactions.js       true redaction of areas, kept for undo until saved
   protection.js       the password the next save sets, keeps or removes
   compression.js      the smaller copy: pictures scaled down to JPEG, fonts cut down
+  ocr.js              the invisible text layer OCR writes on scanned pages, kept for undo
+  ocr-words.js        Tesseract's output turned into words in page points
+  ocr-reader.js       Tesseract.js (OCR) from local files, run in its own worker
+  ocr-languages/      English and Spanish OCR data, shipped with the app
   worker.js           runs engine.js in a Web Worker
   client.js           the app's side: queue, priorities, cancellation
 tests/
@@ -55,7 +59,7 @@ tests/
 ### Separation of responsibilities
 7. The main process does OS work (files, menus, dialogs, settings, printing). The renderer does display and interaction. Neither does the other's job.
 8. Every IPC channel is defined in `shared/ipc-channels.js`. If it isn't listed there, it doesn't exist.
-9. Only `pdf-engine/` imports MuPDF.js. The rest of the app calls its API (`openDocument`, `renderPage`, `getText`, `replaceText`, `addImage`, `save`, ...). The engine runs in a Web Worker so the UI never freezes.
+9. Only `pdf-engine/` imports MuPDF.js (and Tesseract.js, for OCR). The rest of the app calls its API (`openDocument`, `renderPage`, `getText`, `replaceText`, `addImage`, `save`, ...). The engine runs in a Web Worker so the UI never freezes.
 
 ### Code organization
 10. Small modules split by feature, each a few hundred lines at most.

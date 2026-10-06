@@ -17,7 +17,8 @@
     "electron-builder": "26.15.3"
   },
   "dependencies": {
-    "mupdf": "1.28.1"
+    "mupdf": "1.28.1",
+    "tesseract.js": "7.0.0"
   },
   "build": {
     "appId": "com.mussux98.folio",
@@ -34,7 +35,11 @@
       "pdf-engine/**",
       "package.json",
       "LICENSE",
-      "!**/*.map"
+      "!**/*.map",
+      "!node_modules/tesseract.js-core/*.wasm",
+      "!node_modules/tesseract.js-core/tesseract-core{,-simd,-relaxedsimd}.{js,wasm.js}",
+      "!node_modules/tesseract.js-core/tesseract-core{,-simd,-relaxedsimd}-lstm.js",
+      "!node_modules/tesseract.js/{src,docs,scripts}/**"
     ],
     "asarUnpack": [
       "node_modules/mupdf/**"
