@@ -49,6 +49,7 @@ export function createViewer({ tabId, entry, engine, store, folio, start, signLa
   let frame = 0;
   let settleUntil = 0;
   let reported = 0;
+  let kept = { first: 0, last: -1 }; // pages not freed on the last pass
 
   const dpr = () => window.devicePixelRatio || 1;
 
@@ -80,11 +81,16 @@ export function createViewer({ tabId, entry, engine, store, folio, start, signLa
     const seen = visibleRange(layout, top, height);
     const near = visibleRange(layout, top - height * RENDER_MARGIN, height * (1 + 2 * RENDER_MARGIN));
     const keep = visibleRange(layout, top - height * KEEP_MARGIN, height * (1 + 2 * KEEP_MARGIN));
-    pageViews.forEach((view, i) => {
+    // Pages outside both the old and the new keep range are already free.
+    const from = Math.min(keep.first, kept.first);
+    const to = Math.max(keep.last, kept.last);
+    for (let i = from; i <= to; i++) {
+      const view = pageViews[i];
       if (i < keep.first || i > keep.last) view.release();
       else if (i < near.first || i > near.last) view.cancelPending();
       else view.show(scaleFor(i), i >= seen.first && i <= seen.last ? 0 : 10 + Math.abs(i - shown));
-    });
+    }
+    kept = keep;
   }
 
   function scheduleUpdate() {

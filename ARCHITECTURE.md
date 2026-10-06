@@ -15,6 +15,8 @@ main/                 main process: windows, menus, file I/O, dialogs, settings,
   documents.js        openDocument(): the one way files get opened (rule 17)
   pdf-path.js         checks a path is a real PDF, reads command-line files
   system-fonts.js     installed fonts found by the names PDFs give them; lookalike-fonts.js and fonts/ are the bundled stand-ins
+  font-files.js       reads installed font files for the text editor
+  saving.js, save-file.js  Save and Save As; atomic writes (rule 14)
   settings.js         settings.json in userData (recent, views, session)
   signature-library.js  saved signature pictures in userData/signatures
   page-dialogs.js     file and folder questions for the page tools; part-paths.js names split files
@@ -31,6 +33,11 @@ renderer/             the window UI
   commands/           undo/redo command objects
 pdf-engine/           the ONLY code that talks to MuPDF.js
   engine.js           the MuPDF calls (also run directly by the tests)
+  coords.js           page transform: screen ↔ PDF points (rule 21)
+  reading-order.js, fuzzy-search.js  text order and tolerant search
+  text-edits.js       edit lines and add text boxes, kept for undo
+  standard-fonts.js, embedded-fonts.js  the fonts a text edit writes with
+  signatures.js       image stamps: add, move, remove
   pages.js            delete, reorder, insert and copy out pages
   annotations.js      text markup (highlight, underline, strikethrough) and sticky notes
   forms.js            form fields: list a page's fields and fill them in
