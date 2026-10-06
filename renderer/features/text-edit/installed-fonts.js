@@ -8,3 +8,20 @@ export function installedFont(name, { bold, italic }) {
   if (!found.has(id)) found.set(id, folio.findFont({ name, bold, italic }).catch(() => null));
   return found.get(id);
 }
+
+// The names of every installed font family, asked of the main process once.
+let families = null;
+
+export function installedFamilies() {
+  families ??= folio.listFonts().catch(() => []);
+  return families;
+}
+
+// An installed family in the wanted style, same answer as installedFont.
+const byFamily = new Map();
+
+export function installedFamilyFont(family, { bold, italic }) {
+  const id = `${family}|${bold}|${italic}`;
+  if (!byFamily.has(id)) byFamily.set(id, folio.findFontFamily({ name: family, bold, italic }).catch(() => null));
+  return byFamily.get(id);
+}

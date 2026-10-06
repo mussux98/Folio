@@ -243,7 +243,17 @@ body.editing-text .edit-line:hover { background: rgba(137, 178, 222, .18); outli
 .text-error { bottom: auto; top: calc(100% + 6px / var(--z)); font-size: calc(12px / var(--z)); padding: calc(4px / var(--z)) calc(8px / var(--z)); background: #6b2626; color: #fff; border-radius: calc(5px / var(--z)); }
 .text-editor.below .text-error { top: auto; bottom: calc(100% + 6px / var(--z)); }
 .text-bar > * { font: inherit; height: calc(26px / var(--z)); background: var(--surface); color: var(--fg); border: calc(1px / var(--z)) solid var(--line); border-radius: calc(5px / var(--z)); padding: 0 calc(6px / var(--z)); }
-.text-bar select { max-width: calc(170px / var(--z)); }
+.text-bar > .font-picker { position: relative; padding: 0; border: 0; background: none; }
+.text-bar .font-button { height: 100%; width: calc(170px / var(--z)); text-align: left; overflow: hidden; text-overflow: ellipsis; font: inherit; background: var(--surface); color: var(--fg); border: calc(1px / var(--z)) solid var(--line); border-radius: calc(5px / var(--z)); padding: 0 calc(6px / var(--z)); }
+.font-panel { position: absolute; left: 0; top: calc(100% + 3px / var(--z)); z-index: 2; width: calc(260px / var(--z)); max-height: calc(320px / var(--z)); display: flex; flex-direction: column; background: var(--surface); border: calc(1px / var(--z)) solid var(--line); border-radius: calc(6px / var(--z)); box-shadow: 0 calc(6px / var(--z)) calc(20px / var(--z)) rgba(0, 0, 0, .5); }
+.font-panel input { appearance: none; font: inherit; height: calc(26px / var(--z)); margin: calc(5px / var(--z)); padding: 0 calc(6px / var(--z)); background: var(--bg); color: var(--fg); border: calc(1px / var(--z)) solid var(--line); border-radius: calc(5px / var(--z)); }
+.font-list { overflow-y: auto; padding-bottom: calc(4px / var(--z)); }
+.font-list::-webkit-scrollbar { width: calc(8px / var(--z)); }
+.font-list::-webkit-scrollbar-thumb { background: var(--line); border-radius: calc(4px / var(--z)); }
+.font-group { padding: calc(6px / var(--z)) calc(10px / var(--z)) calc(2px / var(--z)); font-size: calc(11px / var(--z)); color: var(--muted); }
+.font-item { padding: calc(4px / var(--z)) calc(10px / var(--z)); font-size: calc(15px / var(--z)); cursor: pointer; content-visibility: auto; contain-intrinsic-size: auto calc(26px / var(--z)); }
+.font-item:hover { background: var(--line); }
+.font-item.selected { background: var(--accent); color: var(--accent-fg); }
 .text-bar input[type=number] { width: calc(56px / var(--z)); }
 .text-bar input[type=color] { width: calc(32px / var(--z)); padding: calc(2px / var(--z)); }
 .text-bar button { min-width: calc(28px / var(--z)); }

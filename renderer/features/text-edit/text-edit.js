@@ -3,7 +3,7 @@ import { createNotice } from '../notice.js';
 import { buildEditLayer } from './edit-layer.js';
 import { openEditor } from './editor.js';
 import { DEFAULT_STYLE, sameStyle, fontLabel, readableFont } from './style.js';
-import { installedFont } from './installed-fonts.js';
+import { installedFont, installedFamilyFont } from './installed-fonts.js';
 import { documentFaces, fontsToReuse } from './faces.js';
 
 const ASCENT = 0.8; // of the font size: from the top of a new box to its first baseline
@@ -39,19 +39,24 @@ export function createTextEditing({ reader, editing }) {
   async function editFor(line, at, text, style, faces) {
     const font = { family: style.family, bold: style.bold, italic: style.italic };
     const face = style.face ? faces.get(style.face) : null;
+    const system = style.system ? await installedFamilyFont(style.system, style) : null;
     const base = {
       text,
       size: style.size,
       font,
       color: style.color,
       reuse: face ? fontsToReuse(face, style, line) : [],
-      installed: face ? await installedFont(face.fonts[0].id, style) : null,
+      installed: system ?? (face ? await installedFont(face.fonts[0].id, style) : null),
     };
     if (!line) return { ...base, area: null, origin: { x: at.x, y: at.y + style.size * ASCENT } };
     return { ...base, area: line.area, origin: line.origin, space: line.space };
   }
 
   function tellFont(line, style, font) {
+    if (style.system && font?.kind === 'standard') {
+      notice.show(`Written in ${fontLabel(font.name)}, the closest standard font. "${style.system}" can't show every letter of the text.`);
+      return;
+    }
     if (style.face && !line?.standard && font?.kind === 'standard') {
       notice.show(`Written in ${fontLabel(font.name)}, the closest standard font. The file holds only some letters of `
         + `"${style.face}" (or another style of it), and that font is not installed on this computer.`);

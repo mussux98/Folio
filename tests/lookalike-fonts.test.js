@@ -51,3 +51,21 @@ test('the system fonts fall back to the look-alike, but an installed font wins',
     fs.rmSync(empty, { recursive: true, force: true });
   }
 });
+
+test('installed families are listed once each, and a family comes back in the wanted style', async () => {
+  const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'folio-fonts-'));
+  try {
+    for (const name of ['LiberationSerif-Regular.ttf', 'LiberationSerif-Bold.ttf', 'Carlito-Regular.ttf']) {
+      fs.copyFileSync(path.join(__dirname, '../main/fonts', name), path.join(folder, name));
+    }
+    const fonts = createSystemFonts([folder]);
+    assert.deepStrictEqual(await fonts.families(), ['Carlito', 'Liberation Serif']);
+    assert.ok((await fonts.findFamily('Liberation Serif', true, false)).key.endsWith('LiberationSerif-Bold.ttf#0'));
+    // No italic in the folder: the nearest face of the family is used.
+    assert.ok((await fonts.findFamily('Liberation Serif', false, true)).key.includes('LiberationSerif-'));
+    assert.strictEqual((await fonts.findFamily('Carlito', true, true)).family, 'Carlito');
+    assert.strictEqual(await fonts.findFamily('Garamond', false, false), null);
+  } finally {
+    fs.rmSync(folder, { recursive: true, force: true });
+  }
+});

@@ -77,6 +77,26 @@ function registerIpc({ settings, documents, saving, pageDialogs, signatures, sys
     }
   });
 
+  // The installed font families the editor's font list offers.
+  ipcMain.handle(channels.FONTS_LIST, async (event) => {
+    try {
+      return fromWindow(event) ? await systemFonts.families() : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // One of those families in the wanted style; null when it can't be used.
+  ipcMain.handle(channels.FONTS_FAMILY, async (event, value) => {
+    const request = fromWindow(event) && parseFontRequest(value);
+    if (!request) return null;
+    try {
+      return await systemFonts.findFamily(request.name, request.bold, request.italic);
+    } catch {
+      return null;
+    }
+  });
+
   ipcMain.handle(channels.PAGES_PICK_FILES, (event) => (fromWindow(event) ? pageDialogs.pickPdfs() : []));
 
   ipcMain.handle(channels.PAGES_PICK_PARTS, (event, current, count) => {

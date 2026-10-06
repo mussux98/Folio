@@ -1,6 +1,7 @@
 // How text looks: { family: 'sans' | 'serif' | 'mono', bold, italic, size, color: [r, g, b], face },
 // with size in points and colour parts from 0 to 1. face names one of the
-// document's fonts ("Calibri"); without it, or when Folio can't use it, the
+// document's fonts ("Calibri"); system names a font installed on this computer
+// instead; without either, or when Folio can't use it, the
 // standard font of the family is used. The editor shows the face when it is
 // installed, else the system's look-alikes of the standard PDF fonts.
 
@@ -14,10 +15,14 @@ const CSS_FAMILIES = {
   mono: '"Courier New", Courier, monospace',
 };
 
-export function cssOf({ family, bold, italic, size, color, face }) {
+// A font name as a CSS family, quotes and backslashes taken out.
+export const quoted = (name) => `"${name.replace(/["\\]/g, '')}"`;
+
+export function cssOf({ family, bold, italic, size, color, face, system }) {
   const generic = CSS_FAMILIES[family] ?? CSS_FAMILIES.sans;
+  const named = system ?? face;
   return {
-    fontFamily: face ? `"${face.replace(/["\\]/g, '')}", ${generic}` : generic,
+    fontFamily: named ? `${quoted(named)}, ${generic}` : generic,
     fontWeight: bold ? '700' : '400',
     fontStyle: italic ? 'italic' : 'normal',
     fontSize: `${size}px`,
@@ -33,7 +38,7 @@ export function fromHex(hex) {
 }
 
 export function sameStyle(a, b) {
-  return a.family === b.family && (a.face ?? null) === (b.face ?? null) && a.bold === b.bold && a.italic === b.italic
+  return a.family === b.family && (a.face ?? null) === (b.face ?? null) && (a.system ?? null) === (b.system ?? null) && a.bold === b.bold && a.italic === b.italic
     && a.size === b.size && toHex(a.color) === toHex(b.color);
 }
 

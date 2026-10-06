@@ -89,3 +89,10 @@ test('document fonts are offered by the names people know, own line first when i
   const lonely = { font: { id: 'DDDDDD+Garamond', family: 'serif', bold: false, italic: false } };
   assert.deepStrictEqual([...documentFaces(fonts, lonely).keys()], ['Calibri', 'Garamond']);
 });
+
+test('an installed font shows in the editor and makes a style differ', async () => {
+  const { cssOf, sameStyle, DEFAULT_STYLE } = await import('../renderer/features/text-edit/style.js');
+  assert.ok(cssOf({ ...DEFAULT_STYLE, system: 'Segoe UI' }).fontFamily.startsWith('"Segoe UI"'));
+  assert.ok(!sameStyle(DEFAULT_STYLE, { ...DEFAULT_STYLE, system: 'Segoe UI' }));
+  assert.ok(sameStyle({ ...DEFAULT_STYLE, system: 'Segoe UI' }, { ...DEFAULT_STYLE, system: 'Segoe UI' }));
+});

@@ -16,6 +16,8 @@ module.exports = Object.freeze({
   SIGNATURES_ADD: 'signatures:add',
   SIGNATURES_REMOVE: 'signatures:remove',
   FONTS_FIND: 'fonts:find',
+  FONTS_LIST: 'fonts:list',
+  FONTS_FAMILY: 'fonts:family',
   PAGES_PICK_FILES: 'pages:pick-files',
   PAGES_PICK_PARTS: 'pages:pick-parts',
   // renderer -> main, fire and forget

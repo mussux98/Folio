@@ -74,19 +74,41 @@ function createSystemFonts(folders = fontFolders(), lookalikes = createLookalike
     return family[0] ?? null;
   }
 
-  // Returns { key, family, bytes, index } or null when no installed font fits.
-  // A font that isn't installed falls back to the app's look-alike, if it has one.
-  async function find(name, bold, italic) {
-    index ??= build();
-    const face = pick(await index, name, bold, italic);
-    if (!face) return lookalikes.find(name, bold, italic);
+  async function load(face) {
     const stat = await fs.stat(face.file);
     if (stat.size > MAX_BYTES) return null;
     const bytes = new Uint8Array(await fs.readFile(face.file));
     return { key: `${face.file}#${face.index}`, family: face.family, bytes, index: face.index };
   }
 
-  return { find };
+  // Returns { key, family, bytes, index } or null when no installed font fits.
+  // A font that isn't installed falls back to the app's look-alike, if it has one.
+  async function find(name, bold, italic) {
+    index ??= build();
+    const face = pick(await index, name, bold, italic);
+    return face ? load(face) : lookalikes.find(name, bold, italic);
+  }
+
+  // The names of the installed font families that may be embedded, sorted.
+  async function families() {
+    index ??= build();
+    const { faces } = await index;
+    return [...new Set(faces.map((face) => face.family))].sort((a, b) => a.localeCompare(b));
+  }
+
+  // A family from that list in the wanted style; a family without that style
+  // gives its face closest to it. Answers like find().
+  async function findFamily(family, bold, italic) {
+    index ??= build();
+    const { faces } = await index;
+    const normal = bold ? 700 : 400;
+    const own = faces.filter((face) => face.family === family);
+    own.sort((a, b) => (b.bold === bold) - (a.bold === bold) || (b.italic === italic) - (a.italic === italic)
+      || Math.abs(a.weight - normal) - Math.abs(b.weight - normal));
+    return own[0] ? load(own[0]) : null;
+  }
+
+  return { find, families, findFamily };
 }
 
 module.exports = { createSystemFonts };
