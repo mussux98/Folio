@@ -6,7 +6,7 @@ const sameScale = (a, b) => Math.abs(a - b) < b * 0.01;
 
 // One page in the scroll. It always exists as an empty sheet of the right size;
 // the picture and the text layers are loaded only while the page is near the screen.
-// width and height are in PDF points; actions is { goToPage(n), openLink(url), signLayer(args), editLayer(args), annotationLayer(args), formLayer(args) }.
+// width and height are in PDF points; actions is { goToPage(n), openLink(url), signLayer(args), editLayer(args), annotationLayer(args), formLayer(args), imageLayer(args) }.
 export function createPageView({ index, width, height, engine, docId, actions }) {
   const el = document.createElement('div');
   el.className = 'page';
@@ -25,6 +25,9 @@ export function createPageView({ index, width, height, engine, docId, actions })
     (list) => actions.annotationLayer({ index, annotations: list, width, height }));
   const forming = createOverlay(el, () => engine.listFormFields(docId, index, -1),
     (fields) => actions.formLayer({ index, fields, width, height }));
+  // Only shown in Edit Images mode, so it waits behind the text.
+  const picturing = createOverlay(el, () => engine.listPageImages(docId, index, 3),
+    (pictures) => actions.imageLayer({ index, pictures, width, height }));
   let marks = [];
   let highlights = null;
 
@@ -87,6 +90,7 @@ export function createPageView({ index, width, height, engine, docId, actions })
     signing.cancelPending();
     annotating.cancelPending();
     forming.cancelPending();
+    picturing.cancelPending();
   }
 
   return {
@@ -105,6 +109,7 @@ export function createPageView({ index, width, height, engine, docId, actions })
       signing.show();
       annotating.show();
       forming.show();
+      picturing.show();
     },
 
     cancelPending,
@@ -122,6 +127,7 @@ export function createPageView({ index, width, height, engine, docId, actions })
       signing.release();
       annotating.release();
       forming.release();
+      picturing.release();
     },
 
     // The page was edited: draw it again at its new size. The old picture stays
@@ -141,6 +147,7 @@ export function createPageView({ index, width, height, engine, docId, actions })
       signing.drop(true);
       annotating.drop(true);
       forming.drop(true);
+      picturing.drop(true);
     },
 
     // marks: [{ rects, current }] or null.

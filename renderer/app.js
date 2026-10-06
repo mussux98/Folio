@@ -10,6 +10,7 @@ import { createAnnotations } from './features/annotations/annotations.js';
 import { createTextEditing } from './features/text-edit/text-edit.js';
 import { createForms } from './features/forms/forms.js';
 import { createRedacting } from './features/redact/redact.js';
+import { createPageImages } from './features/page-images/page-images.js';
 import { createPageTools } from './features/page-tools/page-tools.js';
 import { runCommand } from './features/commands.js';
 
@@ -28,6 +29,8 @@ reader.setAnnotations(createAnnotations({ store, reader, editing }));
 reader.setForms(createForms({ reader, editing }));
 const redacting = createRedacting({ store, reader, editing });
 reader.setRedacting(redacting);
+const pageImages = createPageImages({ store, reader, editing });
+reader.setPageImages(pageImages);
 const pageTools = createPageTools({ store, reader, editing, folio });
 reader.setPageTools(pageTools);
 const closing = createClosing({ store, editing, folio });
@@ -41,7 +44,7 @@ store.subscribe((state) => {
 });
 
 folio.onFileOpened((file) => store.openTab(file));
-folio.onMenuCommand((name) => runCommand({ store, reader, editing, closing, textEditing, redacting, pageTools, folio }, name));
+folio.onMenuCommand((name) => runCommand({ store, reader, editing, closing, textEditing, redacting, pageImages, pageTools, folio }, name));
 
 // Listeners are in place, so the main process can start sending files.
 folio.appReady();

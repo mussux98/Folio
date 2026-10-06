@@ -36,6 +36,7 @@ pdf-engine/           the ONLY code that talks to MuPDF.js
   forms.js            form fields: list a page's fields and fill them in
   drawings.js         ink, rectangles, ellipses, lines and arrows, and text stamps
   redactions.js       true redaction of areas, kept for undo until saved
+  page-images.js      pictures in the page content: listed, deleted, or lifted into a stamp
   protection.js       the password the next save sets, keeps or removes
   compression.js      the smaller copy: pictures scaled down to JPEG, fonts cut down
   ocr.js              the invisible text layer OCR writes on scanned pages, kept for undo

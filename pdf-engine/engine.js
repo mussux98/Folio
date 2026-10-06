@@ -10,6 +10,7 @@ import { createTextEdits } from './text-edits.js';
 import { createPages } from './pages.js';
 import { createForms } from './forms.js';
 import { createRedactions } from './redactions.js';
+import { createPageImages } from './page-images.js';
 import { createProtection } from './protection.js';
 import { compressed } from './compression.js';
 import { createOcrText } from './ocr.js';
@@ -266,6 +267,13 @@ export function createEngine() {
   const redact = (id, index, spec) => restructured(id, redactionsOf(id).redact(index, spec));
   const swapRedaction = (id, key, which) => restructured(id, redactionsOf(id).swap(key, which));
 
+  // Pictures in the page's content: listed, deleted or lifted into a stamp.
+  // Their changes are kept with the redactions, so swapRedaction undoes them.
+  const pageImages = (id) => createPageImages(get(id), (index, task) => withPage(id, index, task), redactionsOf(id));
+  const listPageImages = (id, index) => pageImages(id).list(index);
+  const deletePageImage = (id, index, picture) => restructured(id, pageImages(id).remove(index, picture));
+  const liftPageImage = (id, index, picture) => restructured(id, pageImages(id).lift(index, picture));
+
   // OCR: the page as a picture for Tesseract, which pages have no text, and the
   // invisible text written from what it read. Keyed like text changes.
   function ocrOf(id) {
@@ -330,7 +338,7 @@ export function createEngine() {
     openDocument, authenticate, closeDocument, pageSizes, renderPage, getText, searchPage, getLinks, getOutline,
     pageTransform, rotatePage, deletePages, restorePages, arrangePages, addBlankPage, insertPagesFrom, extractPages, addSignature, moveSignature, removeSignature, listSignatures, signaturePicture,
     addAnnotation, changeAnnotation, removeAnnotation, listAnnotations, listFormFields, setFormValue,
-    textLineAt, documentFonts, replaceText, swapText, redact, swapRedaction, save, saveSmaller,
+    textLineAt, documentFonts, replaceText, swapText, redact, swapRedaction, listPageImages, deletePageImage, liftPageImage, save, saveSmaller,
     setProtection, isProtected, ocrPicture, pagesWithoutText, addOcrText, swapOcrText,
   };
 }

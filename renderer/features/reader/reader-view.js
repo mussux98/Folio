@@ -15,21 +15,23 @@ import { mountKeys } from './keys.js';
 // annotating is { annotationLayer(args), markSelection(type), startNote(), startPen(), openShapes(anchor), openStamps(anchor) } from the annotations feature, and
 // forms is { formLayer(args) } from the forms feature, and
 // redacting is { toggle(), boxOption() } from the redaction feature, and
+// imaging is { imageLayer(args), toggle() } from the page images feature, and
 // pageTools is { move, remove, copy, cut, paste } from the page tools.
-export function createReaderView({ tab, entry, engine, store, folio, start, signing, textEditing, annotating, forms, redacting, pageTools }) {
+export function createReaderView({ tab, entry, engine, store, folio, start, signing, textEditing, annotating, forms, redacting, imaging, pageTools }) {
   const tabId = tab.id;
   const pageCount = entry.sizes.length / 2;
 
   const viewer = createViewer({
     tabId, entry, engine, store, folio, start,
     signLayer: signing.signLayer, editLayer: textEditing.editLayer, annotationLayer: annotating.annotationLayer, formLayer: forms.formLayer,
+    imageLayer: imaging.imageLayer,
   });
   const find = createFind({ engine, docId: entry.docId, pageCount, viewer });
 
   const currentPage = () => store.getState().tabs.find((t) => t.id === tabId)?.page ?? 1;
   const print = () => printDocument({ engine, entry, folio, currentPage });
   const toolbar = createToolbar({
-    tabId, pageCount, store, viewer, find, print, openSignMenu: signing.openMenu, toggleTextEditing: textEditing.toggle, annotating, redacting,
+    tabId, pageCount, store, viewer, find, print, openSignMenu: signing.openMenu, toggleTextEditing: textEditing.toggle, annotating, redacting, toggleImages: imaging.toggle,
   });
   const thumbnails = createThumbnails({ entry, engine, store, tabId, viewer, pageTools });
   const sidebar = createSidebar({

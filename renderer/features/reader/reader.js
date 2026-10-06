@@ -15,6 +15,7 @@ export function createReader({ container, store, folio }) {
   let annotations = null; // and for text markup and notes
   let forms = null; // and for form fields
   let redacting = null; // and for redaction
+  let imaging = null; // and for the pictures in pages
   const entries = new Map(); // tab id -> entry
   const lastSpot = new Map(); // tab id -> { top, zoom } of a tab that is not showing
 
@@ -121,6 +122,7 @@ export function createReader({ container, store, folio }) {
         },
         forms: { formLayer: (args) => forms.layerFor(args) },
         redacting: { toggle: () => redacting.toggle(), boxOption: () => redacting.boxOption() },
+        imaging: { imageLayer: (args) => imaging.layerFor(args), toggle: () => imaging.toggle() },
         pageTools: Object.fromEntries(['move', 'remove', 'copy', 'cut', 'paste'].map((name) => [name, (...args) => pageTools[name](...args)])),
       });
       mounted.view = view;
@@ -178,6 +180,9 @@ export function createReader({ container, store, folio }) {
     },
     setRedacting(feature) {
       redacting = feature;
+    },
+    setPageImages(feature) {
+      imaging = feature;
     },
     setPageTools(feature) {
       pageTools = feature;

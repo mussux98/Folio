@@ -225,6 +225,10 @@ body.redacting .redact-button { background: var(--accent); color: var(--accent-f
 body.redacting .redact-box-option { display: flex; }
 body.redacting .page { cursor: crosshair; touch-action: none; }
 body.redacting .page > * { pointer-events: none; }
+.image-layer { display: none; z-index: 3; position: absolute; left: 0; top: 0; transform: scale(var(--z)); transform-origin: 0 0; pointer-events: none; }
+body.editing-images .image-layer { display: block; }
+.image-box { outline: calc(1px / var(--z)) dashed var(--accent); }
+body.editing-images .images-button { background: var(--accent); color: var(--accent-fg); }
 .redact-draft { position: absolute; z-index: 5; background: rgba(0, 0, 0, .35); outline: 1px dashed #c00; pointer-events: none; }
 .edit-layer { z-index: 3; position: absolute; left: 0; top: 0; transform: scale(var(--z)); transform-origin: 0 0; pointer-events: none; }
 body.editing-text .edit-layer { pointer-events: auto; cursor: text; }

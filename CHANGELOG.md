@@ -4,6 +4,7 @@ All notable changes to Folio are documented here. Format follows Keep a Changelo
 
 ## [Unreleased]
 ### Added
+- Edit Images: Edit → Edit Images (or Images in the toolbar) lets you delete a picture that is part of the page, such as a logo or a scanned signature, or drag it somewhere else and resize it. Text over or under it stays. Each change can be undone.
 - Editing text keeps the layout when the file's font isn't installed (most of all on a Mac): Arial, Helvetica, Times, Courier and Calibri are replaced by look-alikes that ship with Folio and have exactly the same letter widths.
 - Print asks which pages first: all, this page, or a range like 1-3, 7, 10-. Only those pages are prepared, so printing a few pages of a big file is quick.
 - Mac build: a signed and notarized DMG for Intel and Apple Silicon (`npm run dist:mac` on a Mac). PDFs opened from Finder, the Dock or "Open With" become tabs; the tab bar sits in the title bar next to the window buttons; the menus follow Mac conventions (Folio and Window menus, Cmd+G for Find Next).

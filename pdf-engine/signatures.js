@@ -17,6 +17,43 @@ export function imageRef(annot) {
   return found[0] ?? null;
 }
 
+// The colours of an image as RGB, plus its transparency when it has a soft mask.
+export function withAlpha(doc, ref) {
+  const image = doc.loadImage(ref);
+  const raw = image.toPixmap();
+  // CMYK, indexed and other colours become RGB first.
+  const colour = raw.convertToColorSpace(mupdf.ColorSpace.DeviceRGB);
+  raw.destroy();
+  const maskRef = ref.resolve().get('SMask');
+  const mask = maskRef.isNull() ? null : doc.loadImage(maskRef);
+  try {
+    const width = colour.getWidth();
+    const height = colour.getHeight();
+    const out = new mupdf.Pixmap(mupdf.ColorSpace.DeviceRGB, [0, 0, width, height], true);
+    const rgb = colour.getPixels();
+    const target = out.getPixels();
+    const alpha = mask?.toPixmap();
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const i = y * width + x;
+        target.set([rgb[i * 3], rgb[i * 3 + 1], rgb[i * 3 + 2], 255], i * 4);
+        if (alpha) {
+          // The mask may have its own size; take the nearest of its pixels.
+          const mx = Math.floor((x * alpha.getWidth()) / width);
+          const my = Math.floor((y * alpha.getHeight()) / height);
+          target[i * 4 + 3] = alpha.getPixels()[(my * alpha.getWidth() + mx) * alpha.getNumberOfComponents()];
+        }
+      }
+    }
+    alpha?.destroy();
+    return out;
+  } finally {
+    colour.destroy();
+    image.destroy();
+    mask?.destroy();
+  }
+}
+
 export function createSignatures(doc, withPage) {
   function find(page, key) {
     const annot = page.getAnnotations().find((a) => a.getType() === 'Stamp' && keyOf(a) === key);
@@ -87,46 +124,10 @@ export function createSignatures(doc, withPage) {
       .map((a) => ({ key: keyOf(a), ...toPage(a) })));
   }
 
-  // The colours of an image, plus its transparency when it has a soft mask.
-  function withAlpha(ref) {
-    const image = doc.loadImage(ref);
-    const colour = image.toPixmap();
-    const maskRef = ref.resolve().get('SMask');
-    const mask = maskRef.isNull() ? null : doc.loadImage(maskRef);
-    try {
-      const width = colour.getWidth();
-      const height = colour.getHeight();
-      const out = new mupdf.Pixmap(mupdf.ColorSpace.DeviceRGB, [0, 0, width, height], true);
-      const rgb = colour.getPixels();
-      const from = colour.getNumberOfComponents();
-      const target = out.getPixels();
-      const alpha = mask?.toPixmap();
-      for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-          const i = y * width + x;
-          const gray = from === 1;
-          target.set([rgb[i * from], rgb[i * from + (gray ? 0 : 1)], rgb[i * from + (gray ? 0 : 2)], 255], i * 4);
-          if (alpha) {
-            // The mask may have its own size; take the nearest of its pixels.
-            const mx = Math.floor((x * alpha.getWidth()) / width);
-            const my = Math.floor((y * alpha.getHeight()) / height);
-            target[i * 4 + 3] = alpha.getPixels()[(my * alpha.getWidth() + mx) * alpha.getNumberOfComponents()];
-          }
-        }
-      }
-      alpha?.destroy();
-      return out;
-    } finally {
-      colour.destroy();
-      image.destroy();
-      mask?.destroy();
-    }
-  }
-
   // The stamp's picture as PNG bytes, so it can be put back after a deletion or a change.
   function picture(index, key) {
     return withPage(index, (page) => {
-      const pixmap = withAlpha(imageRef(find(page, key)));
+      const pixmap = withAlpha(doc, imageRef(find(page, key)));
       try {
         return pixmap.asPNG();
       } finally {

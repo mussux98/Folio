@@ -18,7 +18,7 @@ function option(value, label) {
 }
 
 // The bar above the pages: sidebar, page number, zoom, search, editing, signing and print.
-export function createToolbar({ tabId, pageCount, store, viewer, find, print, openSignMenu, toggleTextEditing, annotating, redacting }) {
+export function createToolbar({ tabId, pageCount, store, viewer, find, print, openSignMenu, toggleTextEditing, annotating, redacting, toggleImages }) {
   const el = document.createElement('div');
   el.className = 'toolbar';
 
@@ -132,6 +132,7 @@ export function createToolbar({ tabId, pageCount, store, viewer, find, print, op
     button('Edit Text', 'Change or add text (Ctrl+E)', toggleTextEditing, 'edit-text-button'),
     redactButton,
     redacting.boxOption(),
+    button('Images', 'Move, resize or delete pictures in the page', toggleImages, 'images-button'),
     button('Sign', 'Add a signature', openSignMenu, 'sign-button'),
     button('Print', 'Print (Ctrl+P)', print),
   );
