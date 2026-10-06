@@ -2,6 +2,7 @@ const fs = require('fs/promises');
 const path = require('path');
 const os = require('os');
 const { readFontFile } = require('./font-files');
+const { createLookalikes } = require('./lookalike-fonts');
 
 const MAX_BYTES = 32 * 1024 * 1024; // bigger fonts (whole CJK sets) are left alone
 const FONT_FILE = /\.(ttf|otf|ttc)$/i;
@@ -27,7 +28,7 @@ const trimmed = (key) => key.replace(/(psmt|mt|ps)$/, '');
 
 // The fonts installed on this computer, found by the names PDFs give them.
 // The folders are read once, on the first request.
-function createSystemFonts(folders = fontFolders()) {
+function createSystemFonts(folders = fontFolders(), lookalikes = createLookalikes()) {
   let index = null;
 
   async function build() {
@@ -74,10 +75,11 @@ function createSystemFonts(folders = fontFolders()) {
   }
 
   // Returns { key, family, bytes, index } or null when no installed font fits.
+  // A font that isn't installed falls back to the app's look-alike, if it has one.
   async function find(name, bold, italic) {
     index ??= build();
     const face = pick(await index, name, bold, italic);
-    if (!face) return null;
+    if (!face) return lookalikes.find(name, bold, italic);
     const stat = await fs.stat(face.file);
     if (stat.size > MAX_BYTES) return null;
     const bytes = new Uint8Array(await fs.readFile(face.file));
