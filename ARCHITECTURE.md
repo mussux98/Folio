@@ -14,6 +14,7 @@ main/                 main process: windows, menus, file I/O, dialogs, settings,
   menu.js             native menu
   documents.js        openDocument(): the one way files get opened (rule 17)
   pdf-path.js         checks a path is a real PDF, reads command-line files
+  system-fonts.js     installed fonts found by the names PDFs give them; lookalike-fonts.js and fonts/ are the bundled stand-ins
   settings.js         settings.json in userData (recent, views, session)
   signature-library.js  saved signature pictures in userData/signatures
   page-dialogs.js     file and folder questions for the page tools; part-paths.js names split files
