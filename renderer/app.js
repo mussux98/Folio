@@ -38,7 +38,7 @@ store.subscribe((state) => {
 });
 
 folio.onFileOpened((file) => store.openTab(file));
-folio.onMenuCommand((name) => runCommand({ store, reader, editing, closing, textEditing, redacting, pageTools }, name));
+folio.onMenuCommand((name) => runCommand({ store, reader, editing, closing, textEditing, redacting, pageTools, folio }, name));
 
 // Listeners are in place, so the main process can start sending files.
 folio.appReady();

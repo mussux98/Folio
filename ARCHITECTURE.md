@@ -36,6 +36,7 @@ pdf-engine/           the ONLY code that talks to MuPDF.js
   drawings.js         ink, rectangles, ellipses, lines and arrows, and text stamps
   redactions.js       true redaction of areas, kept for undo until saved
   protection.js       the password the next save sets, keeps or removes
+  compression.js      the smaller copy: pictures scaled down to JPEG, fonts cut down
   worker.js           runs engine.js in a Web Worker
   client.js           the app's side: queue, priorities, cancellation
 tests/

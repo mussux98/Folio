@@ -69,5 +69,5 @@ export function createEditing({ store, reader, folio }) {
     });
   }
 
-  return { run, undo, redo, save };
+  return { run, undo, redo, save, inTurn };
 }

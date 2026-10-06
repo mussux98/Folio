@@ -271,3 +271,8 @@ textarea.form-input { padding: 2px; resize: none; }
 .form-toggle:hover { background: rgba(137, 178, 222, .4); }
 .form-toggle:focus-visible { outline: 0; box-shadow: inset 0 0 0 calc(2px / var(--z)) var(--accent); }
 body.annotating .form-field, body.editing-text .form-field, body.signing .form-field { pointer-events: none; }
+
+.smaller-dialog { text-align: left; width: min(400px, 94vw); }
+.smaller-dialog h2 { margin: 0 0 8px; font-size: 15px; }
+.smaller-dialog label { display: grid; grid-template-columns: auto 64px 1fr; align-items: center; gap: 6px; margin-top: 10px; }
+.smaller-dialog label span { color: var(--muted); font-size: 12px; }

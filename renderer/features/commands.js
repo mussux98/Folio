@@ -1,12 +1,13 @@
 import { activeTab } from '../state/store.js';
 import { changePassword } from './password.js';
+import { saveSmallerCopy } from './save-smaller.js';
 
 const isTextField = (el) => el?.matches?.('input, textarea');
 
 // Menu items arrive here by name. Tab and zoom commands change the store,
 // edits and saving go through editing, and the rest belong to the document on
-// screen and go to the reader. app is { store, reader, editing, closing, textEditing, redacting, pageTools }.
-export function runCommand({ store, reader, editing, closing, textEditing, redacting, pageTools }, name) {
+// screen and go to the reader. app is { store, reader, editing, closing, textEditing, redacting, pageTools, folio }.
+export function runCommand({ store, reader, editing, closing, textEditing, redacting, pageTools, folio }, name) {
   const tab = activeTab(store.getState());
   const report = (promise) => promise.catch((err) => console.error(`${name} failed:`, err));
   switch (name) {
@@ -19,6 +20,9 @@ export function runCommand({ store, reader, editing, closing, textEditing, redac
     case 'save':
     case 'save-as':
       if (tab) report(editing.save(tab.id, { as: name === 'save-as' }));
+      break;
+    case 'save-smaller':
+      if (tab) report(saveSmallerCopy({ reader, editing, folio }, tab));
       break;
     case 'password':
       if (tab) report(changePassword({ reader, editing }, tab.id));

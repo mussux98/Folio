@@ -22,6 +22,7 @@ function buildMenu({ recent, actions }) {
         { type: 'separator' },
         { label: 'Save', accelerator: 'CmdOrCtrl+S', click: () => actions.command('save') },
         { label: 'Save As…', accelerator: 'CmdOrCtrl+Shift+S', click: () => actions.command('save-as') },
+        { label: 'Save Smaller Copy…', click: () => actions.command('save-smaller') },
         { label: 'Password…', click: () => actions.command('password') },
         { type: 'separator' },
         { label: 'Print…', accelerator: 'CmdOrCtrl+P', click: () => actions.command('print') },

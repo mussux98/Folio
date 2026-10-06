@@ -4,6 +4,7 @@ All notable changes to Folio are documented here. Format follows Keep a Changelo
 
 ## [Unreleased]
 ### Added
+- Save Smaller Copy: File → Save Smaller Copy… writes a smaller copy of the file. Pictures are scaled down to High (200 dpi), Medium (150 dpi) or Low (96 dpi) and stored as JPEG; text and drawings stay sharp, fonts are cut down to the letters used, and a password is kept. The open file is not changed, and you are told the size before and after.
 - Password protection: File → Password… locks the file with a password (AES-256), changes it, or removes it. It takes effect when you save and can be undone. Protected files keep their password when saved.
 - Redaction: select text and press Redact, or press Redact and drag over any part of a page. What is underneath is removed from the file, not just covered: text, the covered part of pictures, and drawings inside the area. A black box is left in its place unless you untick Black box. Undo brings it back until you save.
 - Forms: fill in text fields, checkboxes, radio buttons, drop-down lists and list boxes right on the page. Tab moves to the next field, Esc puts back what was there, each change can be undone, and the answers are written into the PDF on Save (they show in Edge and Acrobat). Read-only fields, signature fields and push buttons are left alone, and scripts in a form (such as calculated totals) are not run.

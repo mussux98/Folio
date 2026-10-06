@@ -11,6 +11,7 @@ import { createPages } from './pages.js';
 import { createForms } from './forms.js';
 import { createRedactions } from './redactions.js';
 import { createProtection } from './protection.js';
+import { compressed } from './compression.js';
 
 const MAX_SNIPPET = 120;
 
@@ -272,6 +273,12 @@ export function createEngine() {
     return textEdits.get(id)?.hasWholeFonts() ? subsetted(bytes, protection.password()) : bytes;
   }
 
+  // A smaller copy of what Save writes, and how big that would have been.
+  function saveSmaller(id, quality) {
+    const bytes = save(id);
+    return { before: bytes.length, bytes: compressed(bytes, protections.get(id).password(), quality) };
+  }
+
   // Password: null keeps what the file had, '' takes it off. Returns the setting it replaced.
   function setProtection(id, password) {
     get(id);
@@ -309,7 +316,7 @@ export function createEngine() {
     openDocument, authenticate, closeDocument, pageSizes, renderPage, getText, searchPage, getLinks, getOutline,
     pageTransform, rotatePage, deletePages, restorePages, arrangePages, addBlankPage, insertPagesFrom, extractPages, addSignature, moveSignature, removeSignature, listSignatures, signaturePicture,
     addAnnotation, changeAnnotation, removeAnnotation, listAnnotations, listFormFields, setFormValue,
-    textLineAt, documentFonts, replaceText, swapText, redact, swapRedaction, save,
+    textLineAt, documentFonts, replaceText, swapText, redact, swapRedaction, save, saveSmaller,
     setProtection, isProtected,
   };
 }

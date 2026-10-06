@@ -113,6 +113,7 @@ export function createEngineClient() {
     swapRedaction: (id, key, which) => call('swapRedaction', [id, key, which], { priority: -1 }),
     documentFonts: (id) => call('documentFonts', [id], { priority: -1 }),
     save: (id) => call('save', [id], { priority: -1 }),
+    saveSmaller: (id, quality) => call('saveSmaller', [id, quality], { priority: -1 }),
     isProtected: (id) => call('isProtected', [id], { priority: -1 }),
     setProtection: (id, password) => call('setProtection', [id, password], { priority: -1 }),
     terminate: () => worker.terminate(),
