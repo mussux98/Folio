@@ -29,7 +29,7 @@ function buildMenu({ recent, actions }) {
         { type: 'separator' },
         { label: 'Close Tab', accelerator: 'CmdOrCtrl+W', click: () => actions.command('close-tab') },
         { type: 'separator' },
-        isMac ? { role: 'close' } : { role: 'quit', label: 'Exit' },
+        ...(isMac ? [{ role: 'close', accelerator: 'Shift+Cmd+W' }] : [{ role: 'quit', label: 'Exit' }]),
       ],
     },
     {
@@ -46,8 +46,8 @@ function buildMenu({ recent, actions }) {
         { role: 'selectAll' },
         { type: 'separator' },
         { label: 'Find…', accelerator: 'CmdOrCtrl+F', click: () => actions.command('find') },
-        { label: 'Find Next', accelerator: 'F3', click: () => actions.command('find-next') },
-        { label: 'Find Previous', accelerator: 'Shift+F3', click: () => actions.command('find-previous') },
+        { label: 'Find Next', accelerator: isMac ? 'Cmd+G' : 'F3', click: () => actions.command('find-next') },
+        { label: 'Find Previous', accelerator: isMac ? 'Shift+Cmd+G' : 'Shift+F3', click: () => actions.command('find-previous') },
         { type: 'separator' },
         { label: 'Edit Text', accelerator: 'CmdOrCtrl+E', click: () => actions.command('edit-text') },
         { label: 'Redact', accelerator: 'CmdOrCtrl+Shift+X', click: () => actions.command('redact') },
@@ -93,7 +93,8 @@ function buildMenu({ recent, actions }) {
         ...(app.isPackaged ? [] : [{ type: 'separator' }, { role: 'toggleDevTools' }]),
       ],
     },
-    {
+    // On Mac, About is in the Folio menu and the Window menu is standard.
+    ...(isMac ? [{ role: 'windowMenu' }] : [{
       label: 'Help',
       submenu: [
         {
@@ -106,7 +107,7 @@ function buildMenu({ recent, actions }) {
           }),
         },
       ],
-    },
+    }]),
   ];
 
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));

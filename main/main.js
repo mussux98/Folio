@@ -49,10 +49,13 @@ function openFiles(filePaths) {
   for (const filePath of filePaths) documents.openDocument(filePath);
 }
 
-// Mac: must be registered before the app is ready (rule 17).
+// Mac: must be registered before the app is ready (rule 17). Files that
+// arrive earlier (double-clicking a PDF launches Folio) wait for start().
+const earlyFiles = [];
 app.on('open-file', (event, filePath) => {
   event.preventDefault();
   if (documents) documents.openDocument(filePath);
+  else earlyFiles.push(filePath);
 });
 
 app.on('second-instance', (_event, argv, workingDir) => {
@@ -83,7 +86,7 @@ function start() {
   refreshMenu();
 
   // Files from the command line wait in the queue until the window is ready.
-  openFiles(pdfPathsFromArgv(process.argv.slice(1), process.cwd()));
+  openFiles([...pdfPathsFromArgv(process.argv.slice(1), process.cwd()), ...earlyFiles.splice(0)]);
   if (!getMainWindow()) openWindow();
 
   app.on('activate', () => {

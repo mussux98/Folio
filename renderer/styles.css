@@ -15,6 +15,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 /* Tab bar */
 .tab-bar { display: flex; align-items: stretch; background: var(--surface); border-bottom: 1px solid var(--line); min-height: 36px; }
+.mac .tab-bar { padding-left: 80px; -webkit-app-region: drag; }
+.mac .tab-bar .tab, .mac .tab-bar button { -webkit-app-region: no-drag; }
 .tab-list { display: flex; flex: 0 1 auto; min-width: 0; overflow-x: auto; scrollbar-width: none; }
 .tab {
   display: flex; align-items: center; gap: 6px; flex: 0 1 200px; min-width: 90px; padding: 0 6px 0 12px;

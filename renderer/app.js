@@ -13,6 +13,9 @@ import { createRedacting } from './features/redact/redact.js';
 import { createPageTools } from './features/page-tools/page-tools.js';
 import { runCommand } from './features/commands.js';
 
+// Platform-specific: the Mac title bar is hidden, so the tab bar needs a few CSS tweaks.
+if (navigator.userAgent.includes('Macintosh')) document.documentElement.classList.add('mac');
+
 const folio = window.folio;
 const store = createStore();
 

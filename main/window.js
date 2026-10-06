@@ -58,6 +58,8 @@ function createMainWindow(settings) {
     ...visibleBounds(saved),
     title: 'Folio',
     show: false,
+    // Platform-specific: on Mac the tab bar sits in the title bar, next to the traffic lights.
+    ...(process.platform === 'darwin' ? { titleBarStyle: 'hiddenInset' } : {}),
     webPreferences: {
       contextIsolation: true,
       sandbox: true,

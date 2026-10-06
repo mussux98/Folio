@@ -101,7 +101,7 @@ True redaction, OCR (Tesseract.js, offline), compression, password protection. S
   - **Tested:** engine tests (scanned pages found, typed and mixed pages skipped, picture at the asked dpi, words searchable and in place, page looks the same, undo and redo, saved and reopened, turned page, letters the font lacks left out) and Tesseract itself on a rendered scan in Spanish and English (accents kept, words line up). Driven in the running app: dialog, both languages, search hits sit on the printed words, undo, a typed page skipped, a 20-page scan with progress, Cancel, Save and the saved file's text checked. The installer was built with only the cores used (about 11 MB of Tesseract, 5 MB of language data).
   - **Known limits:** a page scanned sideways must be turned upright first (Pages → Rotate), or Tesseract reads nothing useful; letters outside Latin-1 are left out of the text layer; a page with any text, even one line, counts as not scanned; the packaged app's OCR was not driven by hand yet.
 
-## Phase 6: Mac launch · **Sonnet** · ⬜
+## Phase 6: Mac launch · **Sonnet** · 🟨 code written, untested on a Mac
 Mac `open-file` event, `hiddenInset` title bar, Mac menus, Apple Developer ID signing and notarization (`@electron/notarize`, $99/year), DMG.
 
 ## Later improvements (not scheduled)
