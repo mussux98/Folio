@@ -26,7 +26,8 @@ export function createReaderView({ tab, entry, engine, store, folio, start, sign
   });
   const find = createFind({ engine, docId: entry.docId, pageCount, viewer });
 
-  const print = () => printDocument({ engine, entry, folio });
+  const currentPage = () => store.getState().tabs.find((t) => t.id === tabId)?.page ?? 1;
+  const print = () => printDocument({ engine, entry, folio, currentPage });
   const toolbar = createToolbar({
     tabId, pageCount, store, viewer, find, print, openSignMenu: signing.openMenu, toggleTextEditing: textEditing.toggle, annotating, redacting,
   });

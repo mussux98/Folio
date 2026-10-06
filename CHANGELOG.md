@@ -4,6 +4,7 @@ All notable changes to Folio are documented here. Format follows Keep a Changelo
 
 ## [Unreleased]
 ### Added
+- Print asks which pages first: all, this page, or a range like 1-3, 7, 10-. Only those pages are prepared, so printing a few pages of a big file is quick.
 - Mac build: a signed and notarized DMG for Intel and Apple Silicon (`npm run dist:mac` on a Mac). PDFs opened from Finder, the Dock or "Open With" become tabs; the tab bar sits in the title bar next to the window buttons; the menus follow Mac conventions (Folio and Window menus, Cmd+G for Find Next).
 - OCR: Edit → Recognize Text (OCR)… reads scanned pages in English, Spanish or both and lays invisible text over them, so they can be searched, selected and copied. Works fully offline. Pages that already have text are skipped, it can be cancelled, and it can be undone.
 - Save Smaller Copy: File → Save Smaller Copy… writes a smaller copy of the file. Pictures are scaled down to High (200 dpi), Medium (150 dpi) or Low (96 dpi) and stored as JPEG; text and drawings stay sharp, fonts are cut down to the letters used, and a password is kept. The open file is not changed, and you are told the size before and after.

@@ -1,4 +1,5 @@
 import { isCancelled } from '../../../pdf-engine/client.js';
+import { askPrintPages } from './print-dialog.js';
 
 const PRINT_DPI = 150;
 const MAX_PIXELS = 16e6;
@@ -40,9 +41,11 @@ function buildOverlay(onCancel) {
 // Printing happens in the main process (rule 7), but it prints what the window
 // shows, so the pages are first drawn into a hidden area that only the print
 // stylesheet reveals.
-export async function printDocument({ engine, entry, folio }) {
+export async function printDocument({ engine, entry, folio, currentPage }) {
   const area = document.getElementById('print-area');
   const count = entry.sizes.length / 2;
+  const pages = await askPrintPages(count, currentPage());
+  if (!pages) return;
   const urls = [];
   let cancelled = false;
   let cancelRequest = () => {};
@@ -52,8 +55,9 @@ export async function printDocument({ engine, entry, folio }) {
   });
 
   try {
-    for (let i = 0; i < count && !cancelled; i++) {
-      overlay.text.textContent = `Preparing page ${i + 1} of ${count}…`;
+    for (let n = 0; n < pages.length && !cancelled; n++) {
+      const i = pages[n];
+      overlay.text.textContent = `Preparing page ${i + 1} (${n + 1} of ${pages.length})…`;
       const points = entry.sizes[i * 2] * entry.sizes[i * 2 + 1];
       const scale = Math.min(PRINT_DPI / 72, Math.sqrt(MAX_PIXELS / points));
       const request = engine.renderPage(entry.docId, i, scale, 0);
