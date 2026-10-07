@@ -76,6 +76,8 @@ export function createReaderView({ tab, entry, engine, store, folio, start, sign
       viewer.focus();
     },
     command: (name) => commands[name]?.(),
+    thumbsHaveFocus: thumbnails.hasFocus,
+    focusThumbs: thumbnails.focusCurrent,
     // entry.sizes is already up to date.
     pagesChanged(pages) {
       viewer.pagesChanged(pages);

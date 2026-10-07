@@ -20,6 +20,10 @@ export function createSelection({ store, tabId, count }) {
         anchor = i;
       }
     },
+    pick(i) {
+      store.setSelection(tabId, [i]);
+      anchor = i;
+    },
     selectAll: () => store.setSelection(tabId, Array.from({ length: count }, (_, i) => i)),
     clear: () => store.setSelection(tabId, []),
   };

@@ -158,11 +158,14 @@ export function createReader({ container, store, folio }) {
     if (entries.get(tabId) !== entry) return;
     Object.assign(entry, { sizes, outline });
     store.setView(tabId, { page: Math.min(page, sizes.length / 2) });
+    // The view is built again, so a thumbnail that had the focus must get it back.
+    const inThumbs = mounted?.tabId === tabId && mounted.view?.thumbsHaveFocus();
     if (mounted?.tabId === tabId) {
       unmount();
       lastSpot.delete(tabId);
     }
     render(store.getState());
+    if (inThumbs) mounted?.view?.focusThumbs();
   }
 
   return {

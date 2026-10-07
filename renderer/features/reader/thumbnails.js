@@ -67,9 +67,21 @@ export function createThumbnails({ entry, engine, store, tabId, viewer, pageTool
     if (event.key === 'Delete' || event.key === 'Backspace') pageTools.remove();
     else if (command && event.key.toLowerCase() === 'a') selection.selectAll();
     else if (event.key === 'Escape') selection.clear();
+    else if (event.key === 'ArrowUp' || event.key === 'ArrowDown') stepPage(event.key === 'ArrowUp' ? -1 : 1);
     else return;
     event.preventDefault();
   });
+
+  // With a thumbnail focused, Up and Down open the previous or next page and pick it.
+  function stepPage(by) {
+    // The picked page is where the last press ended, even before the view reports it.
+    const picked = selection.picked();
+    const page = picked.length === 1 ? picked[0] + 1 : store.getState().tabs.find((tab) => tab.id === tabId)?.page ?? 1;
+    const next = Math.min(count, Math.max(1, page + by));
+    selection.pick(next - 1);
+    items[next - 1].el.focus({ preventScroll: true });
+    viewer.goToPage(next);
+  }
 
   function place() {
     surface.style.height = `${layout.total}px`;
@@ -169,6 +181,12 @@ export function createThumbnails({ entry, engine, store, tabId, viewer, pageTool
 
   return {
     element: scroller,
+    hasFocus: () => scroller.contains(document.activeElement),
+    // Puts the focus back on the current page's thumbnail, after the view was rebuilt.
+    focusCurrent() {
+      const page = store.getState().tabs.find((tab) => tab.id === tabId)?.page ?? 1;
+      items[page - 1]?.el.focus({ preventScroll: true });
+    },
     // Called when the panel becomes visible, once it has a size.
     refresh() {
       showCurrent({ scrollTo: true });
