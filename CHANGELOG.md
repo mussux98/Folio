@@ -29,6 +29,9 @@ All notable changes to Folio are documented here. Format follows Keep a Changelo
 - Page tools in a new Pages menu: delete, insert a blank page, insert pages from other PDFs, copy, cut and paste pages between tabs (Ctrl+C, Ctrl+X, Ctrl+V on the thumbnails, or the Pages menu), merge files, extract pages to a new file, split into several files. Thumbnails can be picked and dragged to reorder pages. Rotate now turns every picked page. All of it can be undone, except writing the extracted and split files.
 
 ### Fixed
+- A drag-selection that starts in empty space no longer selects everything after it; it starts at the nearest text.
+- Selecting text no longer leaves a grey mark at the page's left edge.
+- Narrow, condensed and wide font cuts such as Arial Narrow are listed as their own font family when editing text.
 - Redaction now also removes the highlights, underlines, strikes and notes that sit under the redacted area (they used to stay, and a note could still hold the removed words). Undo brings them back.
 - Moving or deleting a picture that has colour-key transparency (a logo with see-through white, for example) no longer fails with "cannot drop alpha when converting pixmap".
 

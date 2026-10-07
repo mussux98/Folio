@@ -26,6 +26,17 @@ const plain = (name) => name.toLowerCase().replace(/[^a-z0-9]/g, '');
 // Many PDFs add MT or PS to the PostScript name: "TimesNewRomanPSMT".
 const trimmed = (key) => key.replace(/(psmt|mt|ps)$/, '');
 
+// Some fonts file a narrower or wider cut under the main family (Arial Narrow is "Arial", style
+// "Narrow"). Those are listed as their own family, or they could never be picked apart from it.
+const WIDTH_STYLE = /^((?:extra |ultra |semi )?(?:narrow|condensed|cond|compressed|extended|expanded|wide))\b/i;
+
+function familyOf({ family, style }) {
+  const width = WIDTH_STYLE.exec(style ?? '')?.[1];
+  if (!width) return family;
+  const word = width.toLowerCase().replace(/^cond$/, 'condensed');
+  return `${family} ${word.replace(/\b\w/g, (c) => c.toUpperCase())}`;
+}
+
 // The fonts installed on this computer, found by the names PDFs give them.
 // The folders are read once, on the first request.
 function createSystemFonts(folders = fontFolders(), lookalikes = createLookalikes()) {
@@ -43,7 +54,7 @@ function createSystemFonts(folders = fontFolders(), lookalikes = createLookalike
       for (const name of names.filter((n) => FONT_FILE.test(n))) {
         const file = path.join(folder, name);
         try {
-          for (const face of await readFontFile(file)) if (face.embeddable) faces.push({ file, ...face });
+          for (const face of await readFontFile(file)) if (face.embeddable) faces.push({ file, ...face, base: face.family, family: familyOf(face) });
         } catch {
           // A broken or unreadable font is just left out.
         }
@@ -56,7 +67,7 @@ function createSystemFonts(folders = fontFolders(), lookalikes = createLookalike
       add(ps, face);
       add(trimmed(ps), face);
       add(plain(face.full ?? ''), face);
-      add(plain(`${face.family}${/^regular$/i.test(face.style ?? '') ? '' : face.style ?? ''}`), face);
+      add(plain(`${face.base}${/^regular$/i.test(face.style ?? '') ? '' : face.style ?? ''}`), face);
     }
     return { faces, byName };
   }
@@ -111,4 +122,4 @@ function createSystemFonts(folders = fontFolders(), lookalikes = createLookalike
   return { find, families, findFamily };
 }
 
-module.exports = { createSystemFonts };
+module.exports = { createSystemFonts, familyOf };

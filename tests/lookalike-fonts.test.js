@@ -69,3 +69,14 @@ test('installed families are listed once each, and a family comes back in the wa
     fs.rmSync(folder, { recursive: true, force: true });
   }
 });
+
+test('a narrow or wide cut filed under a family is listed as a family of its own', () => {
+  const { familyOf } = require('../main/system-fonts');
+  assert.strictEqual(familyOf({ family: 'Arial', style: 'Narrow' }), 'Arial Narrow');
+  assert.strictEqual(familyOf({ family: 'Arial', style: 'Narrow Bold Italic' }), 'Arial Narrow');
+  assert.strictEqual(familyOf({ family: 'Roboto', style: 'Condensed Bold' }), 'Roboto Condensed');
+  assert.strictEqual(familyOf({ family: 'Roboto', style: 'Cond Light' }), 'Roboto Condensed');
+  assert.strictEqual(familyOf({ family: 'Arial', style: 'Regular' }), 'Arial');
+  assert.strictEqual(familyOf({ family: 'Arial', style: 'Bold Italic' }), 'Arial');
+  assert.strictEqual(familyOf({ family: 'Segoe UI', style: undefined }), 'Segoe UI');
+});

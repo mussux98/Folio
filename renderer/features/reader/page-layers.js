@@ -15,9 +15,9 @@ function layer(className, width, height) {
 }
 
 // What a copied selection gets after a line (see text-join.js): nothing for a
-// split word, a space inside a paragraph, a break between paragraphs.
+// split word, a space inside a paragraph, a line break between paragraphs. It is always a
+// span (never a <br>), so the CSS can keep it from showing as selected.
 function lineEnd(after) {
-  if (after === '\n') return document.createElement('br');
   const space = document.createElement('span');
   space.className = 'line-space';
   space.textContent = after;
