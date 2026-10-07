@@ -1,5 +1,6 @@
 // The document outline (table of contents) as a tree you can fold.
 // items: [{ title, page (0-based or null), children }]
+// Returns { element, empty }; the sidebar leaves the tab out when empty.
 export function createOutline(items, viewer) {
   const root = document.createElement('div');
   root.className = 'outline';
@@ -9,7 +10,7 @@ export function createOutline(items, viewer) {
     none.className = 'panel-note';
     none.textContent = 'This document has no outline.';
     root.append(none);
-    return { element: root };
+    return { element: root, empty: true };
   }
 
   function build(list, depth) {
@@ -49,5 +50,5 @@ export function createOutline(items, viewer) {
   }
 
   root.append(build(items, 0));
-  return { element: root };
+  return { element: root, empty: false };
 }

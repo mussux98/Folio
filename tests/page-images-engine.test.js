@@ -173,3 +173,33 @@ test('an unknown picture is refused', async () => {
   const { id } = engine.openDocument(makeFile(mupdf));
   assert.throws(() => engine.deletePageImage(id, 0, 9), /no longer on the page/);
 });
+
+// A logo whose transparency is a colour key (/Mask [min max ...]) comes out of MuPDF with an alpha channel.
+function makeKeyedLogo(mupdf) {
+  const doc = new mupdf.PDFDocument();
+  const pixmap = new mupdf.Pixmap(mupdf.ColorSpace.DeviceRGB, [0, 0, 20, 10], false);
+  const pixels = pixmap.getPixels();
+  for (let i = 0; i < pixels.length; i += 3) pixels.set((i / 3) % 20 < 10 ? [255, 255, 255] : [200, 30, 30], i); // the left half is white
+  const ref = doc.addImage(new mupdf.Image(pixmap));
+  ref.put('Mask', [250, 255, 250, 255, 250, 255]); // white is see-through
+  const images = doc.newDictionary();
+  images.put('Logo', ref);
+  const resources = doc.newDictionary();
+  resources.put('XObject', images);
+  doc.insertPage(-1, doc.addPage([0, 0, 300, 400], 0, resources, 'q 60 0 0 30 20 250 cm /Logo Do Q'));
+  return doc.saveToBuffer('').asUint8Array();
+}
+
+test('a picture whose transparency is a colour key can be lifted into a stamp and deleted', async () => {
+  const { mupdf, engine } = await load();
+  const { id } = engine.openDocument(makeKeyedLogo(mupdf));
+  const [picture] = engine.listPageImages(id, 0);
+  const lifted = engine.liftPageImage(id, 0, picture.id);
+  const png = new mupdf.Image(lifted.png).toPixmap();
+  assert.strictEqual(png.getAlpha(), 1);
+  const at = (x, y) => [...png.getPixels().slice((y * png.getWidth() + x) * 4, (y * png.getWidth() + x) * 4 + 4)];
+  assert.strictEqual(at(1, 1)[3], 0, 'the keyed colour is see-through');
+  assert.strictEqual(at(png.getWidth() - 2, png.getHeight() - 2)[3], 255, 'the rest is solid');
+  const second = engine.openDocument(makeKeyedLogo(mupdf));
+  assert.doesNotThrow(() => engine.deletePageImage(second.id, 0, 0));
+});

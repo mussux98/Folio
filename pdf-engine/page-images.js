@@ -90,13 +90,16 @@ function split(pixmap) {
   alpha.clear(255);
   if (!pixmap.getAlpha()) return { colour: pixmap.convertToColorSpace(mupdf.ColorSpace.DeviceRGB), alpha };
   const colour = new mupdf.Pixmap(mupdf.ColorSpace.DeviceRGB, box, false);
-  const from = pixmap.getPixels();
+  // Other colour spaces with transparency are made RGB first, keeping the transparency.
+  const rgba = pixmap.getColorSpace().getNumberOfComponents() === 3 ? pixmap : pixmap.convertToColorSpace(mupdf.ColorSpace.DeviceRGB, true);
+  const from = rgba.getPixels();
   const rgb = colour.getPixels();
   const a = alpha.getPixels();
   for (let i = 0; i < a.length; i++) {
     rgb.set(from.subarray(i * 4, i * 4 + 3), i * 3);
     a[i] = from[i * 4 + 3];
   }
+  if (rgba !== pixmap) rgba.destroy();
   return { colour, alpha };
 }
 

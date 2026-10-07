@@ -17,12 +17,31 @@ export function imageRef(annot) {
   return found[0] ?? null;
 }
 
-// The colours of an image as RGB, plus its transparency when it has a soft mask.
+// A pixmap's colours as RGB without transparency, and the transparency apart (null when it has none).
+// MuPDF gives a picture an alpha channel of its own when it is keyed to a colour.
+function rgbAndOwnAlpha(raw) {
+  if (!raw.getAlpha()) return { colour: raw.convertToColorSpace(mupdf.ColorSpace.DeviceRGB), own: null };
+  const width = raw.getWidth();
+  const height = raw.getHeight();
+  const withAlpha = raw.convertToColorSpace(mupdf.ColorSpace.DeviceRGB, true);
+  const colour = new mupdf.Pixmap(mupdf.ColorSpace.DeviceRGB, [0, 0, width, height], false);
+  const from = withAlpha.getPixels();
+  const rgb = colour.getPixels();
+  const own = new Uint8Array(width * height);
+  for (let i = 0; i < own.length; i++) {
+    rgb.set(from.subarray(i * 4, i * 4 + 3), i * 3);
+    own[i] = from[i * 4 + 3];
+  }
+  withAlpha.destroy();
+  return { colour, own };
+}
+
+// The colours of an image as RGB, plus its transparency when it has a soft mask or a colour key.
 export function withAlpha(doc, ref) {
   const image = doc.loadImage(ref);
   const raw = image.toPixmap();
   // CMYK, indexed and other colours become RGB first.
-  const colour = raw.convertToColorSpace(mupdf.ColorSpace.DeviceRGB);
+  const { colour, own } = rgbAndOwnAlpha(raw);
   raw.destroy();
   const maskRef = ref.resolve().get('SMask');
   const mask = maskRef.isNull() ? null : doc.loadImage(maskRef);
@@ -36,12 +55,13 @@ export function withAlpha(doc, ref) {
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         const i = y * width + x;
-        target.set([rgb[i * 3], rgb[i * 3 + 1], rgb[i * 3 + 2], 255], i * 4);
+        target.set([rgb[i * 3], rgb[i * 3 + 1], rgb[i * 3 + 2], own ? own[i] : 255], i * 4);
         if (alpha) {
           // The mask may have its own size; take the nearest of its pixels.
           const mx = Math.floor((x * alpha.getWidth()) / width);
           const my = Math.floor((y * alpha.getHeight()) / height);
-          target[i * 4 + 3] = alpha.getPixels()[(my * alpha.getWidth() + mx) * alpha.getNumberOfComponents()];
+          const soft = alpha.getPixels()[(my * alpha.getWidth() + mx) * alpha.getNumberOfComponents()];
+          target[i * 4 + 3] = Math.round((soft * target[i * 4 + 3]) / 255);
         }
       }
     }

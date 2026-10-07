@@ -32,8 +32,9 @@ function barButton(label, title, onClick) {
   return button;
 }
 
-// The buttons over a selected markup line or shape: colours, line thickness and delete.
-function buildBar(placement, handlers) {
+// The buttons over a selected markup line or shape: colours, line thickness, a note (for
+// markup) and delete. onNote opens the note's box.
+function buildBar(placement, handlers, onNote) {
   const { type } = placement.spec;
   const drawn = DRAWN.includes(type);
   const bar = el('div', 'anno-bar');
@@ -52,6 +53,7 @@ function buildBar(placement, handlers) {
       bar.append(button);
     }
   }
+  if (!drawn) bar.append(barButton(placement.spec.contents ? 'Edit note' : 'Note', 'Add a note to this markup', onNote));
   const what = drawn ? 'this drawing' : 'this markup';
   bar.append(barButton('Delete', `Delete ${what} (Delete key)`, () => handlers.remove(placement)));
   return bar;
@@ -258,7 +260,20 @@ export function buildAnnotationLayer({ items, width, height, handlers }) {
     const first = rects[0];
     const anchor = el('div', first.y < BAR_ROOM ? 'anno-anchor below' : 'anno-anchor');
     place(anchor, first);
-    anchor.append(buildBar(placement, handlers));
+    // The note belongs to the markup itself, so other readers show it too. Its box opens from the bar.
+    const { box, area } = buildEditor({
+      text: placement.spec.contents,
+      onFinish(text) {
+        box.hidden = true;
+        handlers.edit(placement, text);
+      },
+    });
+    box.hidden = true;
+    anchor.append(buildBar(placement, handlers, () => {
+      box.hidden = false;
+      area.focus();
+    }), box);
+    mark.title = placement.spec.contents;
     mark.append(anchor);
     return mark;
   }

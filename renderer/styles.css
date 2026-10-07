@@ -200,6 +200,8 @@ body.annotating .anno-note, body.editing-text .anno-note, body.signing .anno-not
 .anno-mark.selected .anno-rect { display: block; }
 .anno-anchor { position: absolute; }
 .anno-bar, .anno-editor { pointer-events: auto; }
+.anno-editor[hidden] { display: none; }
+.anno-anchor.below .anno-editor { top: auto; bottom: calc(100% + 4px / var(--z)); }
 .anno-mark .anno-anchor, .anno-note .anno-anchor { display: none; }
 .anno-mark.selected .anno-anchor, .anno-note.selected .anno-anchor { display: block; }
 .anno-bar { position: absolute; left: 0; bottom: calc(100% + 6px / var(--z)); display: flex; align-items: center; gap: calc(4px / var(--z)); white-space: nowrap; cursor: default; }

@@ -8,6 +8,7 @@ const PANELS = [
 // The left panel: page thumbnails, the outline, the search results and the annotations.
 // Which panel is showing, and whether the sidebar is open, lives in the store.
 // panels: { thumbs, outline, results, annotations }, each with an element (thumbs and annotations may refresh()).
+// A document without an outline has no Outline tab (panels.outline.empty), and shows Pages instead if that was the panel.
 export function createSidebar({ store, panels }) {
   const el = document.createElement('aside');
   el.className = 'sidebar';
@@ -36,16 +37,18 @@ export function createSidebar({ store, panels }) {
 
   function render({ sidebar }) {
     el.hidden = !sidebar.open;
+    const panel = sidebar.panel === 'outline' && panels.outline.empty ? 'thumbs' : sidebar.panel;
     PANELS.forEach(({ id }, i) => {
-      const active = id === sidebar.panel;
+      buttons[i].hidden = id === 'outline' && panels.outline.empty;
+      const active = id === panel;
       buttons[i].classList.toggle('active', active);
       buttons[i].setAttribute('aria-selected', String(active));
       panels[id].element.hidden = !active;
     });
     // Thumbnails jump to the current page only when they are brought into view.
-    const now = `${sidebar.open}/${sidebar.panel}`;
-    if (now !== shown && sidebar.open && sidebar.panel === 'thumbs') panels.thumbs.refresh();
-    if (now !== shown && sidebar.open && sidebar.panel === 'annotations') panels.annotations.refresh();
+    const now = `${sidebar.open}/${panel}`;
+    if (now !== shown && sidebar.open && panel === 'thumbs') panels.thumbs.refresh();
+    if (now !== shown && sidebar.open && panel === 'annotations') panels.annotations.refresh();
     shown = now;
   }
 

@@ -4,6 +4,8 @@ All notable changes to Folio are documented here. Format follows Keep a Changelo
 
 ## [Unreleased]
 ### Added
+- A Note button on a selected highlight, underline or strike adds a note to it; the note is saved in the markup and listed in the Annotations tab.
+- The Outline tab is left out for documents that have no outline.
 - Page thumbnails have a right-click menu (copy, cut, paste, delete, extract to a new PDF, new PDF from the copied pages). Dragging thumbnails onto another tab copies those pages to the end of that file. Pages → New PDF from Copied Pages… saves what was copied as a new file.
 - Signatures and stamp pictures can be copied, cut and pasted (Ctrl+C, Ctrl+X, Ctrl+V, or the Copy and Paste buttons over the selection). The copy keeps its size, turn and transparency, lands a little off the original on the same page, and goes onto the page in view if you paste elsewhere, also in another tab. One undo step each.
 - Editing text: a handle at the start of the editor bar drags the whole text block to another place on the page, keeping its font and size. It is one undo step with the text change.
@@ -25,6 +27,9 @@ All notable changes to Folio are documented here. Format follows Keep a Changelo
 - Drawing: Pen for freehand, Shapes for rectangles, ellipses, lines and arrows (Shift for squares, circles and 45° lines), and Stamp for Approved, Draft, Confidential and the other standard stamps. Click a drawing to recolour it, change its thickness, drag it somewhere else or resize it from a corner. Stamps stay upright on turned pages. All of it can be undone.
 - Text markup and sticky notes: select text and choose Highlight, Underline or Strike in the toolbar; Note puts a sticky note where you click. Click markup or a note to change its colour, edit it or delete it. Works on annotations already in the file, and can be undone.
 - Page tools in a new Pages menu: delete, insert a blank page, insert pages from other PDFs, copy, cut and paste pages between tabs (Ctrl+C, Ctrl+X, Ctrl+V on the thumbnails, or the Pages menu), merge files, extract pages to a new file, split into several files. Thumbnails can be picked and dragged to reorder pages. Rotate now turns every picked page. All of it can be undone, except writing the extracted and split files.
+
+### Fixed
+- Moving or deleting a picture that has colour-key transparency (a logo with see-through white, for example) no longer fails with "cannot drop alpha when converting pixmap".
 
 ## [1.0.0] - 2026-10-05
 ### Added
