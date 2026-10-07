@@ -27,8 +27,10 @@ function lineEnd(after) {
 // Invisible text, one block per line, stretched to the width the PDF gives it,
 // so the browser can select and copy it. A split word loses its hyphen in the
 // copy, so the line is stretched as if it were still there.
-export function buildTextLayer(lines, width, height) {
+export function buildTextLayer(allLines, width, height) {
   const el = layer('text-layer', width, height);
+  // A line of only spaces has nothing to select; it would show as a bare block.
+  const lines = allLines.filter((line) => line.text.trim());
   lines.forEach((line, i) => {
     const { text, after } = joinLine(line, lines[i + 1]);
     const row = document.createElement('div');
@@ -44,6 +46,8 @@ export function buildTextLayer(lines, width, height) {
     if (natural > 0) row.style.transform = `scaleX(${line.w / natural})`;
     el.append(row, lineEnd(after));
   });
+  // Kept last; see selection-guard.js.
+  el.append(Object.assign(document.createElement('div'), { className: 'end-of-content' }));
   return el;
 }
 

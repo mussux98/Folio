@@ -4,6 +4,7 @@ All notable changes to Folio are documented here. Format follows Keep a Changelo
 
 ## [Unreleased]
 ### Added
+- Selecting text with the mouse stops where the pointer is: ending a drag below a line, beside it or over a link no longer selects the rest of the page.
 - With a page thumbnail focused, Up and Down open the previous or next page and pick it, and the focus stays on the thumbnails after a page is deleted, moved or inserted. In the page view the arrows still scroll.
 - Sticky notes can be dragged to a new spot on their page. It is one undo step and the note keeps its text.
 - The editing tools are icons in a column beside the pages, each with a tooltip, so they no longer overlap when the window is small. The window now has a minimum size.

@@ -1,4 +1,5 @@
 import { createPageView } from './page-view.js';
+import { mountSelectionGuard } from './selection-guard.js';
 import {
   DESK_PAD, PAGE_GAP, clampZoom, computeLayout, currentPage, fitZoom, pageAtOffset, visibleRange,
 } from './layout.js';
@@ -36,6 +37,7 @@ export function createViewer({ tabId, entry, engine, store, folio, start, signLa
     index: i, width: sizes[i * 2], height: sizes[i * 2 + 1], engine, docId, actions,
   }));
   surface.append(...pageViews.map((view) => view.el));
+  const unmountSelectionGuard = mountSelectionGuard(scroller);
 
   const tabNow = () => store.getState().tabs.find((tab) => tab.id === tabId);
   const pageNumber = () => Math.min(count, Math.max(1, tabNow()?.page ?? 1));
@@ -255,6 +257,7 @@ export function createViewer({ tabId, entry, engine, store, folio, start, signLa
     // Returns where the user was, for coming back to this tab later.
     destroy() {
       unsubscribe();
+      unmountSelectionGuard();
       resizes.disconnect();
       clearTimeout(timer);
       cancelAnimationFrame(frame);
