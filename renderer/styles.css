@@ -56,17 +56,20 @@ button.primary { background: var(--accent); color: var(--accent-fg); border: 0; 
 .reader-body { display: flex; min-height: 0; min-width: 0; }
 
 .toolbar { display: flex; align-items: center; gap: 6px; padding: 4px 10px; background: var(--surface); border-bottom: 1px solid var(--line); }
-.tool { background: transparent; border: 0; border-radius: 4px; min-width: 28px; height: 28px; padding: 0 8px; color: var(--fg); }
+.tool { flex: none; background: transparent; border: 0; border-radius: 4px; min-width: 28px; height: 28px; padding: 0 8px; color: var(--fg); }
 .tool:hover { background: var(--line); }
 .tool.nav { min-width: 24px; padding: 0 4px; font-size: 11px; color: var(--muted); }
 .tool-separator { width: 1px; height: 18px; background: var(--line); margin: 0 4px; }
 .tool-spacer { flex: 1; }
 .toolbar input, .toolbar select { background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 4px; height: 26px; font: inherit; padding: 0 6px; }
+.tool-strip { width: 40px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0; overflow-y: auto; background: var(--surface); border-right: 1px solid var(--line); }
+.icon-tool { width: 32px; min-width: 32px; padding: 0; display: flex; align-items: center; justify-content: center; }
+.strip-divider { width: 20px; height: 1px; background: var(--line); margin: 4px 0; }
 .page-input { width: 44px; text-align: center; }
 .page-total { color: var(--muted); margin-right: 2px; }
 .zoom-select { width: 104px; }
-.find-input { width: 200px; }
-.find-count { color: var(--muted); min-width: 64px; font-size: 12px; }
+.find-input { flex: 0 1 200px; min-width: 90px; }
+.find-count { color: var(--muted); min-width: 0; white-space: nowrap; font-size: 12px; }
 
 .sidebar { width: 220px; flex: none; display: flex; flex-direction: column; background: var(--surface); border-right: 1px solid var(--line); min-height: 0; }
 .sidebar[hidden] { display: none; }
@@ -174,7 +177,6 @@ body.signing .sign-box { pointer-events: none; }
 .sign-bar button:hover { background: var(--line); }
 
 /* Text markup and notes */
-.mark-button { white-space: nowrap; }
 body[data-anno-tool='Note'] .note-button, body[data-anno-tool='Ink'] .pen-button,
 body[data-anno-tool='Square'] .shapes-button, body[data-anno-tool='Circle'] .shapes-button,
 body[data-anno-tool='Line'] .shapes-button, body[data-anno-tool='Arrow'] .shapes-button,

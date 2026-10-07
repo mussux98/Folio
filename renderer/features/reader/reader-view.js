@@ -5,10 +5,11 @@ import { createOutline } from './outline.js';
 import { createResults } from './results.js';
 import { createSidebar } from './sidebar.js';
 import { createToolbar } from './toolbar.js';
+import { createToolStrip } from './tool-strip.js';
 import { printDocument } from './print.js';
 import { mountKeys } from './keys.js';
 
-// Everything shown for one ready document: toolbar, sidebar and the pages.
+// Everything shown for one ready document: toolbar, sidebar, tool strip and the pages.
 // start is where the tab was last time ({ top, zoom }), if it was open before.
 // signing is { signLayer(args), openMenu() } from the signatures feature, and
 // textEditing is { editLayer(args), toggle() } from the text editing feature, and
@@ -31,7 +32,10 @@ export function createReaderView({ tab, entry, engine, store, folio, start, sign
   const currentPage = () => store.getState().tabs.find((t) => t.id === tabId)?.page ?? 1;
   const print = () => printDocument({ engine, entry, folio, currentPage });
   const toolbar = createToolbar({
-    tabId, pageCount, store, viewer, find, print, openSignMenu: signing.openMenu, toggleTextEditing: textEditing.toggle, annotating, redacting, toggleImages: imaging.toggle,
+    tabId, pageCount, store, viewer, find, print, redacting,
+  });
+  const toolStrip = createToolStrip({
+    annotating, redacting, toggleTextEditing: textEditing.toggle, toggleImages: imaging.toggle, openSignMenu: signing.openMenu,
   });
   const thumbnails = createThumbnails({ entry, engine, store, tabId, viewer, pageTools });
   const sidebar = createSidebar({
@@ -47,7 +51,7 @@ export function createReaderView({ tab, entry, engine, store, folio, start, sign
   element.className = 'reader';
   const body = document.createElement('div');
   body.className = 'reader-body';
-  body.append(sidebar.element, viewer.element);
+  body.append(sidebar.element, toolStrip.element, viewer.element);
   element.append(toolbar.element, body);
 
   const pageNow = () => store.getState().tabs.find((t) => t.id === tabId)?.page ?? 1;

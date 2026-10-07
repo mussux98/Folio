@@ -17,8 +17,8 @@ function option(value, label) {
   return el;
 }
 
-// The bar above the pages: sidebar, page number, zoom, search, editing, signing and print.
-export function createToolbar({ tabId, pageCount, store, viewer, find, print, openSignMenu, toggleTextEditing, annotating, redacting, toggleImages }) {
+// The bar above the pages: sidebar, page number, zoom, search and print.
+export function createToolbar({ tabId, pageCount, store, viewer, find, print, redacting }) {
   const el = document.createElement('div');
   el.className = 'toolbar';
 
@@ -91,25 +91,6 @@ export function createToolbar({ tabId, pageCount, store, viewer, find, print, op
     if (!findInput.value && find.state.query) find.search('');
   });
 
-  // Marking acts on the text selected on the page, so these buttons must not take the selection away.
-  const markButtons = [
-    ['Highlight', 'Highlight the selected text', () => annotating.markSelection('Highlight')],
-    ['Underline', 'Underline the selected text', () => annotating.markSelection('Underline')],
-    ['Strike', 'Strike out the selected text', () => annotating.markSelection('StrikeOut')],
-    ['Note', 'Add a sticky note', () => annotating.startNote(), 'note-button'],
-    ['Pen', 'Draw freehand', () => annotating.startPen(), 'pen-button'],
-    ['Shapes ▾', 'Draw a rectangle, ellipse, line or arrow', (event) => annotating.openShapes(event.currentTarget), 'shapes-button'],
-    ['Stamp ▾', 'Add a stamp such as Approved or Draft', (event) => annotating.openStamps(event.currentTarget), 'stamp-button'],
-  ].map(([label, title, onClick, kind = '']) => {
-    const mark = button(label, title, onClick, `mark-button ${kind}`.trim());
-    mark.addEventListener('mousedown', (event) => event.preventDefault());
-    return mark;
-  });
-
-  // Redact acts on the selected text when there is some, so it must not take the selection away either.
-  const redactButton = button('Redact', 'Remove the selected text, or drag over areas to remove (Ctrl+Shift+X)', redacting.toggle, 'redact-button');
-  redactButton.addEventListener('mousedown', (event) => event.preventDefault());
-
   el.append(
     sidebarToggle,
     separator(),
@@ -127,13 +108,7 @@ export function createToolbar({ tabId, pageCount, store, viewer, find, print, op
     button('▼', 'Next match (Enter)', () => find.next(), 'nav'),
     findCount,
     spacer(),
-    ...markButtons,
-    separator(),
-    button('Edit Text', 'Change or add text (Ctrl+E)', toggleTextEditing, 'edit-text-button'),
-    redactButton,
     redacting.boxOption(),
-    button('Images', 'Move, resize or delete pictures in the page', toggleImages, 'images-button'),
-    button('Sign', 'Add a signature', openSignMenu, 'sign-button'),
     button('Print', 'Print (Ctrl+P)', print),
   );
 

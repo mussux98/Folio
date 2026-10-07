@@ -57,6 +57,8 @@ function createMainWindow(settings) {
   const win = new BrowserWindow({
     ...visibleBounds(saved),
     title: 'Folio',
+    minWidth: 720,
+    minHeight: 420,
     show: false,
     // Platform-specific: on Mac the tab bar sits in the title bar, next to the traffic lights.
     ...(process.platform === 'darwin' ? { titleBarStyle: 'hiddenInset' } : {}),
