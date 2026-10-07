@@ -187,8 +187,13 @@ export function createPageImages(doc, withPage, redactions) {
       const resources = obj.get('Resources');
       const paths = objects.get(target.image.pointer)?.paths;
       if (paths && expected.get(target.image.pointer) === 0) {
-        hideByPaths(page, paths);
-        if (worked()) return;
+        // If the exact way fails for any reason, the page is put back and the redaction below is tried.
+        try {
+          hideByPaths(page, paths);
+          if (worked()) return;
+        } catch {
+          // fall through
+        }
         if (resources.isNull()) obj.delete('Resources');
         else obj.put('Resources', resources);
       }

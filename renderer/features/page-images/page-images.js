@@ -44,7 +44,8 @@ export function createPageImages({ store, reader, editing }) {
     select(null);
     editing.run(tabId, makeCommand(doc)).catch((err) => {
       console.error('Picture edit failed:', err);
-      notice.show(err.message?.includes('overlaps') ? err.message : 'This picture could not be changed.');
+      const reason = String(err.message ?? '').replace(/^Error:s*/, '').slice(0, 90);
+      notice.show(err.message?.includes('overlaps') ? err.message : `This picture could not be changed${reason ? ` (${reason})` : ''}.`);
       reader.pagesChanged(tabId, [index]);
     });
   }
