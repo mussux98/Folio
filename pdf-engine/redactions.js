@@ -6,6 +6,8 @@
 import * as mupdf from '../node_modules/mupdf/dist/mupdf.js';
 
 const PARTS = ['Contents', 'Resources', 'Annots'];
+// Form fields and links are part of the page's structure, not marks made on it.
+const KEPT_ANNOTATIONS = ['Widget', 'Link', 'Popup', 'Redact'];
 
 export function createRedactions(doc, withPage) {
   const changes = new Map(); // key -> { index, before, after }
@@ -52,9 +54,27 @@ export function createRedactions(doc, withPage) {
     });
   }
 
+  // An annotation goes with the redaction when its middle is inside an area that covers at
+  // least half of its width, so a highlight that only grazes the area stays.
+  function mostlyInside([x0, y0, x1, y1], rects) {
+    const cx = (x0 + x1) / 2;
+    const cy = (y0 + y1) / 2;
+    return rects.some((r) => cx >= r.x && cx <= r.x + r.w && cy >= r.y && cy <= r.y + r.h
+      && Math.min(x1, r.x + r.w) - Math.max(x0, r.x) >= (x1 - x0) / 2);
+  }
+
+  // Highlights, notes, stamps and the like keep what they were drawn over, and a note can
+  // hold the very words being removed, so those under the area are deleted too.
+  function dropAnnotations(page, rects) {
+    // Chosen first: deleting one makes the list of the others stale.
+    const doomed = page.getAnnotations().filter((annot) => !KEPT_ANNOTATIONS.includes(annot.getType()) && mostlyInside(annot.getBounds(), rects));
+    for (const annot of doomed) page.deleteAnnotation(annot);
+  }
+
   // rects: [{ x, y, w, h }] in page space. box: whether a black box is left in their place.
   function redact(index, { rects, box }) {
     return change(index, (page) => {
+      dropAnnotations(page, rects);
       for (const { x, y, w, h } of rects) {
         const annot = page.createAnnotation('Redact');
         annot.setRect([x, y, x + w, y + h]);

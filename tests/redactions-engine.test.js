@@ -110,3 +110,23 @@ test('redaction works on a turned page, in the page as displayed', async () => {
   engine.redact(id, 0, { rects: [band(first)], box: true });
   assert.deepStrictEqual(texts(engine, id), ['Kept line']);
 });
+
+test('a redaction also removes the annotations that are mostly inside it, and undo brings them back', async () => {
+  const { engine, makePdf } = await load();
+  const { id } = engine.openDocument(makePdf(['Secret line\nKept line']));
+  const [secret, kept] = engine.getText(id, 0);
+  const color = [1, 0.85, 0];
+  engine.addAnnotation(id, 0, { type: 'Highlight', rects: [secret], color, contents: 'copied secret' });
+  engine.addAnnotation(id, 0, { type: 'StrikeOut', rects: [secret], color: [1, 0, 0] });
+  engine.addAnnotation(id, 0, { type: 'Highlight', rects: [kept], color });
+  // Half of the highlight on the second line sticks out of the area: it is not mostly inside.
+  engine.addAnnotation(id, 0, { type: 'Highlight', rects: [{ ...kept, y: kept.y - kept.h * 0.6 }], color });
+  const key = engine.redact(id, 0, { rects: [band(secret)], box: false });
+  assert.deepStrictEqual(texts(engine, id), ['Kept line']);
+  assert.strictEqual(engine.listAnnotations(id, 0).length, 2, 'only the two on the second line are left');
+  assert.ok(engine.listAnnotations(id, 0).every((a) => a.contents !== 'copied secret'));
+  engine.swapRedaction(id, key, 'before');
+  assert.strictEqual(engine.listAnnotations(id, 0).length, 4);
+  engine.swapRedaction(id, key, 'after');
+  assert.strictEqual(engine.listAnnotations(id, 0).length, 2);
+});
