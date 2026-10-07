@@ -54,3 +54,17 @@ test('a replacement picture keeps the centre and width but takes its own shape',
   const { replacedRect } = await load();
   assert.deepStrictEqual(replacedRect({ x: 100, y: 100, w: 60, h: 20 }, 2, page), { x: 100, y: 95, w: 60, h: 30 });
 });
+
+test('a pasted copy sits a little off the original on its own page, and stays on the page', async () => {
+  const { pastedRect } = await load();
+  const page = { width: 300, height: 400 };
+  const rect = { x: 50, y: 60, w: 100, h: 40 };
+  assert.deepStrictEqual(pastedRect(rect, false, page), rect);
+  assert.deepStrictEqual(pastedRect(rect, true, page), { x: 64, y: 74, w: 100, h: 40 });
+  assert.deepStrictEqual(pastedRect({ x: 200, y: 360, w: 100, h: 40 }, true, page), { x: 200, y: 360, w: 100, h: 40 });
+});
+
+test('a copy bigger than the page it is pasted on is shrunk to fit', async () => {
+  const { pastedRect } = await load();
+  assert.deepStrictEqual(pastedRect({ x: 0, y: 0, w: 400, h: 200 }, false, { width: 200, height: 200 }), { x: 0, y: 0, w: 200, h: 100 });
+});

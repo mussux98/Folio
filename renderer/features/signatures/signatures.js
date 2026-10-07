@@ -4,7 +4,7 @@ import { createLibrary } from './library.js';
 import { buildSignLayer } from './sign-layer.js';
 import { openSignatureMenu } from './menu.js';
 import { askForSignature } from './dialog.js';
-import { placedAt, turnedRect, replacedRect } from './geometry.js';
+import { placedAt, turnedRect, replacedRect, pastedRect } from './geometry.js';
 import { turnPicture } from './turn.js';
 
 const isTextField = (el) => el?.matches?.('input, textarea, select');
@@ -20,6 +20,7 @@ export function createSignatures({ store, reader, editing, folio }) {
   let armed = null; // the library item that the next click on a page places
   let selected = null; // { tabId, placement }
   let closeMenu = null;
+  let copied = null; // { png, rect, tabId, index }: the last signature copied, for any page of any tab
 
   const report = (promise) => promise.catch((err) => console.error('Signature edit failed:', err));
   const find = (tabId, key) => [...(placements.get(tabId) ?? [])].find((p) => p.key === key) ?? null;
@@ -65,6 +66,27 @@ export function createSignatures({ store, reader, editing, folio }) {
     if (doc) report(Promise.resolve(makeCommand(doc)).then((command) => editing.run(tabId, command)));
   }
 
+  // Remembers a signature's picture and box for pasting. Its picture is read from the file if needed.
+  async function copy(tabId, placement) {
+    const doc = reader.documentOf(tabId);
+    if (!doc) return;
+    placement.png ??= await doc.engine.signaturePicture(doc.docId, placement.index, placement.key);
+    copied = { png: placement.png, rect: placement.rect, tabId, index: placement.index };
+  }
+
+  // Puts the copied signature on a page, a little off the original when it is the same page.
+  // A copy pasted again lands a little off the last one.
+  async function paste(tabId, index) {
+    const doc = reader.documentOf(tabId);
+    if (!copied || !doc) return;
+    const [width, height] = doc.pageSize(index);
+    const rect = pastedRect(copied.rect, copied.tabId === tabId && copied.index === index, { width, height });
+    const placement = adopt(tabId, { index, png: copied.png, rect, key: null });
+    copied = { ...copied, rect, tabId, index };
+    await editing.run(tabId, placeSignature(doc, placement));
+    select(tabId, placement);
+  }
+
   // The layer for one page, built when the page loads its text and links.
   function layerFor({ tabId, index, signatures, width, height }) {
     // Signatures from the file get a placement too; their picture is read when first needed.
@@ -87,6 +109,8 @@ export function createSignatures({ store, reader, editing, folio }) {
           select(null, null);
           edit(tabId, (doc) => removeSignature(doc, placement));
         },
+        copy: (placement) => report(copy(tabId, placement)),
+        paste: () => report(paste(tabId, index)),
         turn: (placement, turns) => edit(tabId, async (doc) => {
           const png = await turnPicture(placement.png ?? await doc.engine.signaturePicture(doc.docId, index, placement.key), turns);
           return changeSignature(doc, placement, { png, rect: turnedRect(placement.rect, page) });
@@ -139,6 +163,33 @@ export function createSignatures({ store, reader, editing, folio }) {
       select(null, null);
       report(editing.run(tabId, removeSignature(doc, placement)));
     }
+  });
+
+  // Ctrl+C, Ctrl+X and Ctrl+V (or the Edit menu) work on a selected signature. Text that is
+  // selected, a field being typed in, and the page thumbnails keep their own copy and paste.
+  const signatureHere = () => (selected && selected.tabId === activeTab(store.getState())?.id && !isTextField(document.activeElement) ? selected : null);
+
+  document.addEventListener('copy', (event) => {
+    const picked = signatureHere();
+    if (!picked || !window.getSelection().isCollapsed) return;
+    event.preventDefault();
+    report(copy(picked.tabId, picked.placement));
+  });
+
+  document.addEventListener('cut', (event) => {
+    const picked = signatureHere();
+    const doc = picked && reader.documentOf(picked.tabId);
+    if (!doc || !window.getSelection().isCollapsed) return;
+    event.preventDefault();
+    select(null, null);
+    report(copy(picked.tabId, picked.placement).then(() => editing.run(picked.tabId, removeSignature(doc, picked.placement))));
+  });
+
+  document.addEventListener('paste', (event) => {
+    const tab = activeTab(store.getState());
+    if (!copied || !tab || event.defaultPrevented || isTextField(document.activeElement)) return;
+    event.preventDefault();
+    report(paste(tab.id, tab.page - 1));
   });
 
   // Forget the placements of tabs that were closed.

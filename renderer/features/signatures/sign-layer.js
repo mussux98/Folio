@@ -21,6 +21,8 @@ function buildBar(placement, rect, handlers) {
     ['↺', 'Turn left', () => handlers.turn(placement, -1)],
     ['↻', 'Turn right', () => handlers.turn(placement, 1)],
     ['Replace', 'Use another saved signature', (event) => handlers.replace(placement, event.currentTarget)],
+    ['Copy', 'Copy this signature (Ctrl+C)', () => handlers.copy(placement)],
+    ['Paste', 'Paste the copied signature on this page (Ctrl+V)', () => handlers.paste()],
     ['Delete', 'Delete this signature (Delete key)', () => handlers.remove(placement)],
   ];
   for (const [label, title, onClick] of buttons) {
@@ -39,7 +41,7 @@ function buildBar(placement, rect, handlers) {
 // itself is part of the page; the boxes here only take clicks and drags.
 // items: [{ rect, placement }].
 // handlers: { isSelected(placement), select(placement | null), place(point), change(placement, rect),
-//   turn(placement, quarterTurns), replace(placement, button), remove(placement) }
+//   turn(placement, quarterTurns), replace(placement, button), copy(placement), paste(), remove(placement) }
 export function buildSignLayer({ items, width, height, handlers }) {
   const el = document.createElement('div');
   el.className = 'sign-layer';

@@ -50,6 +50,15 @@ function fitted(rect, page) {
   return { x: clamp(rect.x, 0, page.width - w), y: clamp(rect.y, 0, page.height - h), w, h };
 }
 
+const PASTE_OFFSET = 14; // points a pasted copy sits from the one it was copied from
+
+// The box for a copy: the same size and place, moved a little when it lands on the page
+// it was copied from (nudge), and kept on the page.
+export function pastedRect(rect, nudge, page) {
+  const shift = nudge ? PASTE_OFFSET : 0;
+  return fitted({ ...rect, x: rect.x + shift, y: rect.y + shift }, page);
+}
+
 // The box of a signature turned a quarter turn: same centre, width and height swapped.
 export function turnedRect(rect, page) {
   const cx = rect.x + rect.w / 2;
