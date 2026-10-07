@@ -271,6 +271,7 @@ body.editing-text .edit-line:hover { background: rgba(137, 178, 222, .18); outli
 .text-bar button { min-width: calc(28px / var(--z)); }
 .text-bar button:hover { background: var(--line); }
 .text-bar button.on { background: var(--accent); color: var(--accent-fg); }
+.text-bar .grip { cursor: move; touch-action: none; }
 .text-bar .bold { font-weight: 700; }
 .text-bar .italic { font-style: italic; font-family: serif; }
 

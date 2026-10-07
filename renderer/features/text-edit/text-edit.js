@@ -36,7 +36,8 @@ export function createTextEditing({ reader, editing }) {
 
   // A face from the document is written with the file's copy when it has every
   // letter, else the installed one (the engine decides).
-  async function editFor(line, at, text, style, faces) {
+  // shift is how far the box was dragged, { dx, dy } in points.
+  async function editFor(line, at, text, style, faces, { dx, dy }) {
     const font = { family: style.family, bold: style.bold, italic: style.italic };
     const face = style.face ? faces.get(style.face) : null;
     const system = style.system ? await installedFamilyFont(style.system, style) : null;
@@ -48,8 +49,8 @@ export function createTextEditing({ reader, editing }) {
       reuse: face ? fontsToReuse(face, style, line) : [],
       installed: system ?? (face ? await installedFont(face.fonts[0].id, style) : null),
     };
-    if (!line) return { ...base, area: null, origin: { x: at.x, y: at.y + style.size * ASCENT } };
-    return { ...base, area: line.area, origin: line.origin, space: line.space };
+    if (!line) return { ...base, area: null, origin: { x: at.x + dx, y: at.y + dy + style.size * ASCENT } };
+    return { ...base, area: line.area, origin: { x: line.origin.x + dx, y: line.origin.y + dy }, space: line.space };
   }
 
   function tellFont(line, style, font) {
@@ -81,13 +82,14 @@ export function createTextEditing({ reader, editing }) {
     async function finish(save) {
       if (busy) return;
       const value = editor.value();
-      const unchanged = line ? value.text === text && sameStyle(value.style, style) : !value.text.trim();
+      const { dx, dy } = value.shift;
+      const unchanged = line ? value.text === text && sameStyle(value.style, style) && !dx && !dy : !value.text.trim();
       if (!save || unchanged) return close();
       const doc = reader.documentOf(tabId);
       if (!doc) return close();
       busy = true;
       try {
-        const command = changeText(doc, index, await editFor(line, at, value.text, value.style, faces));
+        const command = changeText(doc, index, await editFor(line, at, value.text, value.style, faces, value.shift));
         await editing.run(tabId, command);
         if (!line) newStyle = value.style;
         tellFont(line, value.style, command.font);

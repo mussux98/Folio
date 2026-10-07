@@ -5,6 +5,8 @@ const BAR_ROOM = 40; // points above the box needed to show the bar over it
 const MIN_SIZE = 4;
 const MAX_SIZE = 144;
 
+const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
+
 function control(tag, title, props = {}) {
   const el = Object.assign(document.createElement(tag), props);
   el.title = title;
@@ -60,6 +62,7 @@ function buildBar(style, faces, onChange, onDone, refocus) {
 // at: { x, y, w, h } where the box goes (w and h are the least it takes up).
 // multiline: Enter starts a new line, and Ctrl+Enter finishes.
 // faces: the document's fonts for the font list, [{ label, family }].
+// value() is { text, style, shift }, shift being how far the box was dragged ({ dx, dy } in points).
 // onFinish(save) is called on Enter, Done or Esc; the caller then closes it.
 export function openEditor({ layer, at, text, style, faces = [], multiline, onFinish }) {
   const el = document.createElement('div');
@@ -96,6 +99,35 @@ export function openEditor({ layer, at, text, style, faces = [], multiline, onFi
   error.className = 'text-error';
   error.hidden = true;
 
+  // The handle at the start of the bar drags the whole box; dragging inside it only selects text.
+  let shift = { dx: 0, dy: 0 };
+  const grip = control('button', 'Move the text (drag)', { textContent: '✥', className: 'grip' });
+  grip.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    grip.setPointerCapture(event.pointerId);
+    const page = { w: parseFloat(layer.style.width), h: parseFloat(layer.style.height) };
+    const scale = layer.getBoundingClientRect().width / page.w;
+    const from = { x: event.clientX, y: event.clientY, ...shift };
+    const move = (e) => {
+      const x = clamp(at.x + from.dx + (e.clientX - from.x) / scale, 0, Math.max(0, page.w - field.offsetWidth));
+      const y = clamp(at.y + from.dy + (e.clientY - from.y) / scale, 0, Math.max(0, page.h - field.offsetHeight));
+      shift = { dx: x - at.x, dy: y - at.y };
+      el.style.left = `${x}px`;
+      el.style.top = `${y}px`;
+    };
+    const end = () => {
+      grip.removeEventListener('pointermove', move);
+      grip.removeEventListener('pointerup', end);
+      grip.removeEventListener('pointercancel', end);
+      field.focus();
+    };
+    grip.addEventListener('pointermove', move);
+    grip.addEventListener('pointerup', end);
+    grip.addEventListener('pointercancel', end);
+  });
+  bar.prepend(grip);
+
   el.append(bar, field, error);
   layer.append(el);
   field.focus();
@@ -103,7 +135,7 @@ export function openEditor({ layer, at, text, style, faces = [], multiline, onFi
 
   return {
     el,
-    value: () => ({ text: field.value, style: current }),
+    value: () => ({ text: field.value, style: current, shift }),
     showError(message) {
       error.textContent = message;
       error.hidden = false;
