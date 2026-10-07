@@ -104,6 +104,7 @@ export function createEngineClient() {
     changeAnnotation: (id, index, key, changes) => call('changeAnnotation', [id, index, key, changes], { priority: -1 }),
     removeAnnotation: (id, index, key) => call('removeAnnotation', [id, index, key], { priority: -1 }),
     listAnnotations: (id, index, priority) => request('listAnnotations', [id, index], { priority }),
+    summarizeAnnotations: (id, from, to) => call('summarizeAnnotations', [id, from, to], { priority: 8 }),
     setFormValue: (id, index, key, value) => call('setFormValue', [id, index, key, value], { priority: -1 }),
     listFormFields: (id, index, priority) => request('listFormFields', [id, index], { priority }),
     textLineAt: (id, index, point) => call('textLineAt', [id, index, point], { priority: -1 }),

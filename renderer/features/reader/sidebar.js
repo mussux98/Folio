@@ -2,11 +2,12 @@ const PANELS = [
   { id: 'thumbs', label: 'Pages' },
   { id: 'outline', label: 'Outline' },
   { id: 'results', label: 'Results' },
+  { id: 'annotations', label: 'Annotations' },
 ];
 
-// The left panel: page thumbnails, the outline and the search results.
+// The left panel: page thumbnails, the outline, the search results and the annotations.
 // Which panel is showing, and whether the sidebar is open, lives in the store.
-// panels: { thumbs, outline, results }, each with an element (thumbs may refresh()).
+// panels: { thumbs, outline, results, annotations }, each with an element (thumbs and annotations may refresh()).
 export function createSidebar({ store, panels }) {
   const el = document.createElement('aside');
   el.className = 'sidebar';
@@ -27,6 +28,7 @@ export function createSidebar({ store, panels }) {
   });
   tabs.append(...buttons);
   panels.results.element.hidden = true;
+  panels.annotations.element.hidden = true;
   body.append(...PANELS.map(({ id }) => panels[id].element));
   el.append(tabs, body);
 
@@ -43,6 +45,7 @@ export function createSidebar({ store, panels }) {
     // Thumbnails jump to the current page only when they are brought into view.
     const now = `${sidebar.open}/${sidebar.panel}`;
     if (now !== shown && sidebar.open && sidebar.panel === 'thumbs') panels.thumbs.refresh();
+    if (now !== shown && sidebar.open && sidebar.panel === 'annotations') panels.annotations.refresh();
     shown = now;
   }
 

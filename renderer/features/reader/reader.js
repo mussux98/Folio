@@ -119,6 +119,7 @@ export function createReader({ container, store, folio }) {
           startPen: () => annotations.startPen(),
           openShapes: (anchor) => annotations.openShapes(anchor),
           openStamps: (anchor) => annotations.openStamps(anchor),
+          reveal: (tabId, index, key) => annotations.reveal(tabId, index, key),
         },
         forms: { formLayer: (args) => forms.layerFor(args) },
         redacting: { toggle: () => redacting.toggle(), boxOption: () => redacting.boxOption() },

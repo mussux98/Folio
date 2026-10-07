@@ -39,6 +39,7 @@ export function createAnnotations({ store, reader, editing }) {
   let selected = null; // { tabId, placement }
   let tool = null; // { kind, icon }: what a press on the page makes
   let closeMenu = null;
+  let wanted = null; // { tabId, key }: picked in the list, waiting for its page to be built
 
   const report = (promise) => promise.catch((err) => console.error('Annotation edit failed:', err));
   const find = (tabId, key) => [...(placements.get(tabId) ?? [])].find((p) => p.key === key) ?? null;
@@ -53,7 +54,16 @@ export function createAnnotations({ store, reader, editing }) {
 
   function select(tabId, placement) {
     selected = placement ? { tabId, placement } : null;
+    wanted = null;
     refresh();
+  }
+
+  // Selects an annotation chosen in the Annotations list. Its page may not be built
+  // yet, in which case it is selected as soon as the page's layer is.
+  function reveal(tabId, key) {
+    const known = find(tabId, key);
+    if (known) select(tabId, known);
+    else wanted = { tabId, key };
   }
 
   function adopt(tabId, placement) {
@@ -153,6 +163,8 @@ export function createAnnotations({ store, reader, editing }) {
       },
     });
     layers.set(layer.el, layer);
+    const picked = wanted?.tabId === tabId && items.find(({ placement }) => placement.key === wanted.key);
+    if (picked) select(tabId, picked.placement);
     layer.update();
     return layer.el;
   }
@@ -192,6 +204,7 @@ export function createAnnotations({ store, reader, editing }) {
 
   return {
     layerFor,
+    reveal: (tabId, index, key) => reveal(tabId, key),
     markSelection,
     startNote: () => toggleTool('Note'),
     startPen: () => toggleTool('Ink'),

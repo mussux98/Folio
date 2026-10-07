@@ -4,6 +4,7 @@ All notable changes to Folio are documented here. Format follows Keep a Changelo
 
 ## [Unreleased]
 ### Added
+- Annotations tab in the sidebar: lists every note, highlight, underline, strike, pen mark and shape with its page and text. Click a row to jump to it and select it, and filter by kind. The list updates as you add, delete, move or undo.
 - Selecting text with the mouse stops where the pointer is: ending a drag below a line, beside it or over a link no longer selects the rest of the page.
 - With a page thumbnail focused, Up and Down open the previous or next page and pick it, and the focus stays on the thumbnails after a page is deleted, moved or inserted. In the page view the arrows still scroll.
 - Sticky notes can be dragged to a new spot on their page. It is one undo step and the note keeps its text.

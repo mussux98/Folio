@@ -243,6 +243,7 @@ export function createEngine() {
   const changeAnnotation = (id, index, key, changes) => annotations(id).change(index, key, changes);
   const removeAnnotation = (id, index, key) => annotations(id).remove(index, key);
   const listAnnotations = (id, index) => annotations(id).list(index);
+  const summarizeAnnotations = (id, from, to) => annotations(id).summary(from, Math.min(to, get(id).countPages()));
 
   // Form fields: each call works on one page.
   const forms = (id) => createForms((index, task) => withPage(id, index, task));
@@ -337,7 +338,7 @@ export function createEngine() {
   return {
     openDocument, authenticate, closeDocument, pageSizes, renderPage, getText, searchPage, getLinks, getOutline,
     pageTransform, rotatePage, deletePages, restorePages, arrangePages, addBlankPage, insertPagesFrom, extractPages, addSignature, moveSignature, removeSignature, listSignatures, signaturePicture,
-    addAnnotation, changeAnnotation, removeAnnotation, listAnnotations, listFormFields, setFormValue,
+    addAnnotation, changeAnnotation, removeAnnotation, listAnnotations, summarizeAnnotations, listFormFields, setFormValue,
     textLineAt, documentFonts, replaceText, swapText, redact, swapRedaction, listPageImages, deletePageImage, liftPageImage, save, saveSmaller,
     setProtection, isProtected, ocrPicture, pagesWithoutText, addOcrText, swapOcrText,
   };

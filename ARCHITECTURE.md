@@ -39,7 +39,7 @@ pdf-engine/           the ONLY code that talks to MuPDF.js
   standard-fonts.js, embedded-fonts.js  the fonts a text edit writes with
   signatures.js       image stamps: add, move, remove
   pages.js            delete, reorder, insert and copy out pages
-  annotations.js      text markup (highlight, underline, strikethrough) and sticky notes
+  annotations.js      text markup (highlight, underline, strikethrough) and sticky notes; lists a page range for the Annotations panel
   forms.js            form fields: list a page's fields and fill them in
   drawings.js         ink, rectangles, ellipses, lines and arrows, and text stamps
   redactions.js       true redaction of areas, kept for undo until saved

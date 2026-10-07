@@ -25,6 +25,12 @@ const rectOf = ([x0, y0, x1, y1, x2, y2, x3, y3]) => {
   return { x, y, w: Math.max(...xs) - x, h: Math.max(...ys) - y };
 };
 
+// The text along the middle of each rect, joined into one line.
+const wordsUnder = (stext, rects) => rects
+  .map(({ x, y, w, h }) => stext.copy([x + 1, y + h / 2], [x + w - 1, y + h / 2]).replace(/\s+/g, ' ').trim())
+  .filter(Boolean)
+  .join(' ');
+
 // MuPDF draws a highlight with rounded ends that spill past the text. This swaps its
 // appearance for plain boxes, keeping the multiply blend that lets the text show through.
 function squareHighlight(annot) {
@@ -117,5 +123,26 @@ export function createAnnotations(withPage) {
     return withPage(index, (page) => page.getAnnotations().filter(isOurs).map(describe));
   }
 
-  return { add, change, remove, list };
+  // For the Annotations panel: the annotations of pages from up to (not including) to, each
+  // with its page index and, for markup, the words it covers.
+  function summary(from, to) {
+    const found = [];
+    for (let index = from; index < to; index++) {
+      withPage(index, (page) => {
+        const annots = page.getAnnotations().filter(isOurs);
+        const stext = annots.some((a) => MARKUP.includes(a.getType())) ? page.toStructuredText() : null;
+        try {
+          for (const annot of annots) {
+            const item = describe(annot);
+            found.push({ ...item, index, text: stext && MARKUP.includes(item.type) ? wordsUnder(stext, item.rects) : '' });
+          }
+        } finally {
+          stext?.destroy();
+        }
+      });
+    }
+    return found;
+  }
+
+  return { add, change, remove, list, summary };
 }

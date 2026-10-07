@@ -145,7 +145,7 @@ export function createStore() {
       updateTab(id, (tab) => ({ ...tab, path, name: path.split(/[\\/]/).pop() }));
     },
 
-    // panel is 'thumbs', 'outline' or 'results'.
+    // panel is 'thumbs', 'outline', 'results' or 'annotations'.
     setSidebar(patch) {
       set({ ...state, sidebar: { ...state.sidebar, ...patch } });
     },

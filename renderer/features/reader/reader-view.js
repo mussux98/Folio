@@ -3,6 +3,7 @@ import { createFind } from './find.js';
 import { createThumbnails } from './thumbnails.js';
 import { createOutline } from './outline.js';
 import { createResults } from './results.js';
+import { createAnnotationList } from '../annotations/annotation-list.js';
 import { createSidebar } from './sidebar.js';
 import { createToolbar } from './toolbar.js';
 import { createToolStrip } from './tool-strip.js';
@@ -13,7 +14,7 @@ import { mountKeys } from './keys.js';
 // start is where the tab was last time ({ top, zoom }), if it was open before.
 // signing is { signLayer(args), openMenu() } from the signatures feature, and
 // textEditing is { editLayer(args), toggle() } from the text editing feature, and
-// annotating is { annotationLayer(args), markSelection(type), startNote(), startPen(), openShapes(anchor), openStamps(anchor) } from the annotations feature, and
+// annotating is { annotationLayer(args), markSelection(type), startNote(), startPen(), openShapes(anchor), openStamps(anchor), reveal(tabId, index, key) } from the annotations feature, and
 // forms is { formLayer(args) } from the forms feature, and
 // redacting is { toggle(), boxOption() } from the redaction feature, and
 // imaging is { imageLayer(args), toggle() } from the page images feature, and
@@ -37,6 +38,13 @@ export function createReaderView({ tab, entry, engine, store, folio, start, sign
   const toolStrip = createToolStrip({
     annotating, redacting, toggleTextEditing: textEditing.toggle, toggleImages: imaging.toggle, openSignMenu: signing.openMenu,
   });
+  const annotationList = createAnnotationList({
+    engine, docId: entry.docId, pageCount,
+    onPick(item) {
+      viewer.goToPage(item.index + 1);
+      annotating.reveal(tabId, item.index, item.key);
+    },
+  });
   const thumbnails = createThumbnails({ entry, engine, store, tabId, viewer, pageTools });
   const sidebar = createSidebar({
     store,
@@ -44,6 +52,7 @@ export function createReaderView({ tab, entry, engine, store, folio, start, sign
       thumbs: thumbnails,
       outline: createOutline(entry.outline, viewer),
       results: createResults(find),
+      annotations: annotationList,
     },
   });
 
@@ -82,6 +91,7 @@ export function createReaderView({ tab, entry, engine, store, folio, start, sign
     pagesChanged(pages) {
       viewer.pagesChanged(pages);
       thumbnails.pagesChanged(pages);
+      annotationList.pagesChanged(pages);
       find.refresh();
     },
     destroy() {

@@ -76,3 +76,15 @@ test('changing a highlight colour redraws it, and a missing annotation is report
   assert.throws(() => engine.removeAnnotation(id, 0, key), /no longer/);
   assert.throws(() => engine.addAnnotation(id, 0, { ...spec, type: 'Polygon' }), /not supported/);
 });
+
+test('summarizeAnnotations lists a range of pages with the words under markup', async () => {
+  const { engine, makePdf } = await load();
+  const { id } = engine.openDocument(makePdf(['Alpha beta gamma', 'second page', 'third page']));
+  const [box] = engine.getText(id, 0);
+  const rects = [{ x: box.x, y: box.y, w: box.w, h: box.h }];
+  engine.addAnnotation(id, 0, { type: 'Highlight', rects, color: [1, 0.75, 0] });
+  engine.addAnnotation(id, 2, { type: 'Text', rects: [{ x: 50, y: 60, w: 20, h: 20 }], color: [1, 0.8, 0], contents: 'remember' });
+  const all = engine.summarizeAnnotations(id, 0, 99);
+  assert.deepStrictEqual(all.map((a) => [a.index, a.type, a.text, a.contents]), [[0, 'Highlight', 'Alpha beta gamma', ''], [2, 'Text', '', 'remember']]);
+  assert.deepStrictEqual(engine.summarizeAnnotations(id, 1, 2), []);
+});
