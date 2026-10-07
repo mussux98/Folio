@@ -185,6 +185,7 @@ body[data-anno-tool='Stamp'] .stamp-button { background: var(--accent); color: v
 body.annotating .anno-layer { pointer-events: auto; cursor: crosshair; touch-action: none; }
 body.annotating .anno-note, body.editing-text .anno-note, body.signing .anno-note { pointer-events: none; }
 .anno-note { position: absolute; pointer-events: auto; cursor: pointer; }
+.anno-note.moving { background: #f5d547; opacity: 0.85; cursor: move; }
 .anno-note.selected { outline: calc(1.5px / var(--z)) solid var(--accent); }
 .anno-rect { display: none; position: absolute; outline: calc(1.5px / var(--z)) solid var(--accent); }
 .anno-mark.selected .anno-rect { display: block; }

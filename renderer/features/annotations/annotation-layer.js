@@ -183,6 +183,43 @@ export function buildAnnotationLayer({ items, width, height, handlers }) {
     window.addEventListener('pointercancel', end);
   }
 
+  // Drags a note's icon to another spot on its page. A press that barely moves is a click.
+  function dragNote(event, node, placement) {
+    const rect = placement.spec.rects[0];
+    const scale = width / layer.getBoundingClientRect().width;
+    const start = { x: event.clientX, y: event.clientY };
+    let moved = null;
+    const move = (e) => {
+      const dx = (e.clientX - start.x) * scale;
+      const dy = (e.clientY - start.y) * scale;
+      if (!moved && Math.hypot(dx, dy) < MIN_DRAG) return;
+      moved = centredAt({ x: rect.x + rect.w / 2 + dx, y: rect.y + rect.h / 2 + dy }, rect.w, rect.h, page);
+      place(node, moved);
+      node.classList.add('moving');
+      layer.classList.add('dragging');
+    };
+    const end = (e) => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', end);
+      window.removeEventListener('pointercancel', end);
+      layer.classList.remove('dragging');
+      if (!moved) return;
+      // The click that ends a drag is not a click on the note.
+      const swallow = (click) => click.stopPropagation();
+      window.addEventListener('click', swallow, true);
+      setTimeout(() => window.removeEventListener('click', swallow, true));
+      if (e.type === 'pointercancel') {
+        node.classList.remove('moving');
+        place(node, rect);
+      } else {
+        handlers.change(placement, { rects: [moved] });
+      }
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', end);
+    window.addEventListener('pointercancel', end);
+  }
+
   function addNote(placement) {
     const { rects, contents } = placement.spec;
     const note = el('div', 'anno-note');
@@ -202,7 +239,11 @@ export function buildAnnotationLayer({ items, width, height, handlers }) {
       handlers.select(placement);
       area.focus();
     });
-    note.addEventListener('pointerdown', (event) => event.stopPropagation());
+    note.addEventListener('pointerdown', (event) => {
+      event.stopPropagation();
+      if (event.button !== 0 || box.contains(event.target)) return;
+      dragNote(event, note, placement);
+    });
     return note;
   }
 
