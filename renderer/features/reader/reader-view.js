@@ -18,7 +18,7 @@ import { mountKeys } from './keys.js';
 // forms is { formLayer(args) } from the forms feature, and
 // redacting is { toggle(), boxOption() } from the redaction feature, and
 // imaging is { imageLayer(args), toggle() } from the page images feature, and
-// pageTools is { move, remove, copy, cut, paste } from the page tools.
+// pageTools is { move, remove, copy, cut, paste, extract, saveCopied } from the page tools.
 export function createReaderView({ tab, entry, engine, store, folio, start, signing, textEditing, annotating, forms, redacting, imaging, pageTools }) {
   const tabId = tab.id;
   const pageCount = entry.sizes.length / 2;

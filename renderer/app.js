@@ -34,7 +34,7 @@ reader.setPageImages(pageImages);
 const pageTools = createPageTools({ store, reader, editing, folio });
 reader.setPageTools(pageTools);
 const closing = createClosing({ store, editing, folio });
-mountTabs(document.getElementById('tabs'), { store, folio, closeTab: closing.closeTab });
+mountTabs(document.getElementById('tabs'), { store, folio, closeTab: closing.closeTab, sendPages: pageTools.sendTo });
 mountDropOpen(folio);
 mountSession(store, folio);
 

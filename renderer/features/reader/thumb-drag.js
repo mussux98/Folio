@@ -1,3 +1,4 @@
+export const PAGES_DRAG_TYPE = 'application/x-folio-pages';
 const EDGE = 40; // px from the top or bottom of the list where dragging scrolls it
 const SCROLL_STEP = 16;
 
@@ -33,8 +34,10 @@ export function mountDrag({ scroller, surface, items, getLayout, store, tabId, s
     el.addEventListener('dragstart', (event) => {
       if (!selection.picked().includes(i)) store.setSelection(tabId, [i]);
       dragged = selection.picked();
-      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.effectAllowed = 'copyMove';
       event.dataTransfer.setData('text/plain', dragged.map((n) => n + 1).join(','));
+      // Dropped on another tab, the pages are copied into that file (see tabs.js).
+      event.dataTransfer.setData(PAGES_DRAG_TYPE, JSON.stringify({ tabId, indexes: dragged }));
     });
     el.addEventListener('dragend', () => {
       dragged = null;

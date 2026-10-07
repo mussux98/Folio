@@ -124,7 +124,7 @@ export function createReader({ container, store, folio }) {
         forms: { formLayer: (args) => forms.layerFor(args) },
         redacting: { toggle: () => redacting.toggle(), boxOption: () => redacting.boxOption() },
         imaging: { imageLayer: (args) => imaging.layerFor(args), toggle: () => imaging.toggle() },
-        pageTools: Object.fromEntries(['move', 'remove', 'copy', 'cut', 'paste'].map((name) => [name, (...args) => pageTools[name](...args)])),
+        pageTools: Object.fromEntries(['move', 'remove', 'copy', 'cut', 'paste', 'extract', 'saveCopied'].map((name) => [name, (...args) => pageTools[name](...args)])),
       });
       mounted.view = view;
       container.replaceChildren(view.element);

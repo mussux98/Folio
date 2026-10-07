@@ -1,6 +1,7 @@
 // A small list of choices under a toolbar button, such as the shapes or the stamps.
 // items: [{ label, onPick }]; onClose is called however it closes. Returns a function that closes it.
-export function openPickMenu({ anchor, items, onClose }) {
+// It opens under anchor (an element), or at a point { x, y } when there is no anchor.
+export function openPickMenu({ anchor, at, items, onClose }) {
   const el = document.createElement('div');
   el.className = 'pick-menu';
   el.setAttribute('role', 'menu');
@@ -15,12 +16,12 @@ export function openPickMenu({ anchor, items, onClose }) {
     el.append(item);
   }
 
-  const box = anchor.getBoundingClientRect();
-  el.style.left = `${Math.max(8, Math.min(box.left, window.innerWidth - 168))}px`;
-  el.style.top = `${box.bottom + 4}px`;
+  const box = anchor ? anchor.getBoundingClientRect() : { left: at.x, bottom: at.y };
+  el.style.left = `${Math.max(8, Math.min(box.left, window.innerWidth - 248))}px`;
+  el.style.top = `${Math.max(8, Math.min(box.bottom + (anchor ? 4 : 0), window.innerHeight - 260))}px`;
 
   function onPointerDown(event) {
-    if (!el.contains(event.target) && !anchor.contains(event.target)) close();
+    if (!el.contains(event.target) && !anchor?.contains(event.target)) close();
   }
   function onKey(event) {
     if (event.key !== 'Escape') return;

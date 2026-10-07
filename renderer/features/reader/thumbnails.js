@@ -2,6 +2,7 @@ import { isCancelled } from '../../../pdf-engine/client.js';
 import { computeLayout, visibleRange } from './layout.js';
 import { createSelection } from './thumb-select.js';
 import { mountDrag } from './thumb-drag.js';
+import { openPickMenu } from '../annotations/pick-menu.js';
 
 const THUMB_WIDTH = 132;
 const LABEL_HEIGHT = 22;
@@ -10,7 +11,7 @@ const KEEP = 3;
 
 // The page thumbnails in the sidebar. Like the main scroll, only the ones near
 // the view are drawn; the rest are empty boxes of the right size.
-// pageTools is { move(indexes, gap), remove(), copy(), cut(), paste() }.
+// pageTools is { move(indexes, gap), remove(), copy(), cut(), paste(), extract(), saveCopied() }.
 export function createThumbnails({ entry, engine, store, tabId, viewer, pageTools }) {
   const { docId } = entry;
   let sizes = entry.sizes;
@@ -50,6 +51,26 @@ export function createThumbnails({ entry, engine, store, tabId, viewer, pageTool
     return { el, canvas: null, request: null, stale: false };
   });
   surface.append(...items.map((item) => item.el));
+
+  // Right-click: the page tools for the pages picked (the page under the pointer if it was not picked).
+  items.forEach(({ el }, i) => {
+    el.addEventListener('contextmenu', (event) => {
+      event.preventDefault();
+      if (!selection.picked().includes(i)) selection.pick(i);
+      el.focus({ preventScroll: true });
+      openPickMenu({
+        at: { x: event.clientX, y: event.clientY },
+        items: [
+          { label: 'Copy Pages', onPick: () => pageTools.copy() },
+          { label: 'Cut Pages', onPick: () => pageTools.cut() },
+          { label: 'Paste Pages', onPick: () => pageTools.paste() },
+          { label: 'Delete Pages', onPick: () => pageTools.remove() },
+          { label: 'Extract Pages to a New PDF…', onPick: () => pageTools.extract() },
+          { label: 'New PDF from Copied Pages…', onPick: () => pageTools.saveCopied() },
+        ],
+      });
+    });
+  });
   mountDrag({
     scroller, surface, items, store, tabId, selection, getLayout: () => layout, move: pageTools.move,
   });

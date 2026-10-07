@@ -94,6 +94,30 @@ export function createPageTools({ store, reader, editing, folio }) {
     run(here.tab, insertPagesFromFiles(here.doc, at, files));
   }
 
+  // Pages dragged onto another tab are copied to the end of that file; the source stays as it is.
+  async function sendTo(targetId, sourceId, indexes) {
+    if (targetId === sourceId) return;
+    const from = reader.documentOf(sourceId);
+    const to = reader.documentOf(targetId);
+    const name = store.getState().tabs.find((tab) => tab.id === targetId)?.name;
+    if (!from || !to) return notice.show('That file is not open yet.');
+    try {
+      const bytes = await from.engine.extractPages(from.docId, indexes);
+      await editing.run(targetId, insertPagesFromFiles(to, to.pageCount, [bytes]));
+      notice.show(`Copied ${indexes.length === 1 ? '1 page' : `${indexes.length} pages`} to ${name}.`, 3000);
+    } catch (err) {
+      notice.show(err.message);
+    }
+  }
+
+  // The copied pages as a new file.
+  async function saveCopied() {
+    if (!copied) return notice.show('Copy some pages first.');
+    const tab = activeTab(store.getState());
+    const path = await folio.chooseSavePath(`${tab ? withoutExtension(tab.path) : 'Copied pages'} (copied pages).pdf`);
+    if (path && await writeAll([{ path, bytes: copied }])) notice.show(`Saved ${path.split(/[\\/]/).pop()}.`);
+  }
+
   async function writeAll(items) {
     for (const { path, bytes } of items) {
       if (!(await folio.writeFile(path, bytes))) return false;
@@ -136,5 +160,5 @@ export function createPageTools({ store, reader, editing, folio }) {
     }
   }
 
-  return { rotate, remove, move, copy, cut, paste, insertBlank, insertFiles, extract, split };
+  return { rotate, remove, move, copy, cut, paste, insertBlank, insertFiles, extract, split, sendTo, saveCopied };
 }

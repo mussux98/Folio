@@ -61,6 +61,9 @@ export function runCommand({ store, reader, editing, closing, textEditing, redac
     case 'extract-pages':
       report(pageTools.extract());
       break;
+    case 'new-from-copied':
+      report(pageTools.saveCopied());
+      break;
     case 'split-document':
       report(pageTools.split());
       break;

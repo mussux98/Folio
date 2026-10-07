@@ -2,8 +2,10 @@
 // closeTab(id) asks about unsaved changes first.
 
 const TAB_DRAG_TYPE = 'application/x-folio-tab';
+const PAGES_DRAG_TYPE = 'application/x-folio-pages'; // see thumb-drag.js
 
-export function mountTabs(container, { store, folio, closeTab }) {
+// sendPages(targetTabId, sourceTabId, indexes) copies pages dragged from a sidebar onto a tab.
+export function mountTabs(container, { store, folio, closeTab, sendPages }) {
   const list = document.createElement('div');
   list.className = 'tab-list';
   list.setAttribute('role', 'tablist');
@@ -91,13 +93,38 @@ export function mountTabs(container, { store, folio, closeTab }) {
     event.dataTransfer.effectAllowed = 'move';
   });
 
+  // Pages dragged from a sidebar and dropped on a tab are copied into that file.
+  const hasPages = (event) => event.dataTransfer.types.includes(PAGES_DRAG_TYPE);
+  const showTarget = (id) => list.querySelectorAll('.tab').forEach((tab) => tab.classList.toggle('drop-target', Number(tab.dataset.id) === id));
+
   list.addEventListener('dragover', (event) => {
+    if (hasPages(event)) {
+      const id = tabIdFrom(event);
+      if (id) {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'copy';
+      }
+      showTarget(id);
+      return;
+    }
     if (!dragId) return;
     event.preventDefault();
     showGap(gapAt(event.clientX));
   });
 
+  list.addEventListener('dragleave', (event) => {
+    if (!list.contains(event.relatedTarget)) showTarget(null);
+  });
+
   list.addEventListener('drop', (event) => {
+    if (hasPages(event)) {
+      event.preventDefault();
+      showTarget(null);
+      const id = tabIdFrom(event);
+      const { tabId, indexes } = JSON.parse(event.dataTransfer.getData(PAGES_DRAG_TYPE) || '{}');
+      if (id && Array.isArray(indexes)) sendPages(id, tabId, indexes);
+      return;
+    }
     if (!dragId) return;
     event.preventDefault();
     store.moveTab(dragId, gapAt(event.clientX));
@@ -105,6 +132,7 @@ export function mountTabs(container, { store, folio, closeTab }) {
 
   list.addEventListener('dragend', () => {
     dragId = null;
+    showTarget(null);
     showGap(-1);
   });
 

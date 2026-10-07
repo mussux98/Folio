@@ -4,6 +4,7 @@ All notable changes to Folio are documented here. Format follows Keep a Changelo
 
 ## [Unreleased]
 ### Added
+- Page thumbnails have a right-click menu (copy, cut, paste, delete, extract to a new PDF, new PDF from the copied pages). Dragging thumbnails onto another tab copies those pages to the end of that file. Pages → New PDF from Copied Pages… saves what was copied as a new file.
 - Signatures and stamp pictures can be copied, cut and pasted (Ctrl+C, Ctrl+X, Ctrl+V, or the Copy and Paste buttons over the selection). The copy keeps its size, turn and transparency, lands a little off the original on the same page, and goes onto the page in view if you paste elsewhere, also in another tab. One undo step each.
 - Editing text: a handle at the start of the editor bar drags the whole text block to another place on the page, keeping its font and size. It is one undo step with the text change.
 - Annotations tab in the sidebar: lists every note, highlight, underline, strike, pen mark and shape with its page and text. Click a row to jump to it and select it, and filter by kind. The list updates as you add, delete, move or undo.

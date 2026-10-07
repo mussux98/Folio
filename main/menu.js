@@ -72,6 +72,7 @@ function buildMenu({ recent, actions }) {
         { label: 'Merge Files…', click: () => actions.command('merge-files') },
         { type: 'separator' },
         { label: 'Extract Pages…', click: () => actions.command('extract-pages') },
+        { label: 'New PDF from Copied Pages…', click: () => actions.command('new-from-copied') },
         { label: 'Split Document…', click: () => actions.command('split-document') },
       ],
     },
