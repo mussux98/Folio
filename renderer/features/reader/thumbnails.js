@@ -3,6 +3,7 @@ import { computeLayout, visibleRange } from './layout.js';
 import { createSelection } from './thumb-select.js';
 import { mountDrag } from './thumb-drag.js';
 import { openPickMenu } from '../annotations/pick-menu.js';
+import { lastCopied } from '../clipboard.js';
 
 const THUMB_WIDTH = 132;
 const LABEL_HEIGHT = 22;
@@ -78,6 +79,8 @@ export function createThumbnails({ entry, engine, store, tabId, viewer, pageTool
   // Copy, cut and paste (keys or Edit menu) work on pages while a thumbnail has focus.
   for (const name of ['copy', 'cut', 'paste']) {
     scroller.addEventListener(name, (event) => {
+      // A signature copied after the pages is pasted by the signatures feature, on the page in view.
+      if (name === 'paste' && lastCopied() === 'signature') return;
       event.preventDefault();
       pageTools[name]();
     });

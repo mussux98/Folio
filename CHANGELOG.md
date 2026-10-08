@@ -29,6 +29,7 @@ All notable changes to Folio are documented here. Format follows Keep a Changelo
 - Page tools in a new Pages menu: delete, insert a blank page, insert pages from other PDFs, copy, cut and paste pages between tabs (Ctrl+C, Ctrl+X, Ctrl+V on the thumbnails, or the Pages menu), merge files, extract pages to a new file, split into several files. Thumbnails can be picked and dragged to reorder pages. Rotate now turns every picked page. All of it can be undone, except writing the extracted and split files.
 
 ### Fixed
+- Pasting a copied signature works after you click a page thumbnail to go to the page, and Copy tells you it worked or why it did not.
 - A drag-selection that starts in empty space no longer selects everything after it; it starts at the nearest text.
 - Selecting text no longer leaves a grey mark at the page's left edge.
 - Narrow, condensed and wide font cuts such as Arial Narrow are listed as their own font family when editing text.

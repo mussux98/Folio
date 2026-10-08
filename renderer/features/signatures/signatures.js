@@ -6,6 +6,8 @@ import { openSignatureMenu } from './menu.js';
 import { askForSignature } from './dialog.js';
 import { placedAt, turnedRect, replacedRect, pastedRect } from './geometry.js';
 import { turnPicture } from './turn.js';
+import { createNotice } from '../notice.js';
+import { markCopied, lastCopied } from '../clipboard.js';
 
 const isTextField = (el) => el?.matches?.('input, textarea, select');
 
@@ -22,7 +24,11 @@ export function createSignatures({ store, reader, editing, folio }) {
   let closeMenu = null;
   let copied = null; // { png, rect, tabId, index }: the last signature copied, for any page of any tab
 
-  const report = (promise) => promise.catch((err) => console.error('Signature edit failed:', err));
+  const notice = createNotice();
+  const report = (promise) => promise.catch((err) => {
+    console.error('Signature edit failed:', err);
+    notice.show(err.message || 'That did not work.');
+  });
   const find = (tabId, key) => [...(placements.get(tabId) ?? [])].find((p) => p.key === key) ?? null;
 
   function refresh() {
@@ -34,6 +40,8 @@ export function createSignatures({ store, reader, editing, folio }) {
 
   function select(tabId, placement) {
     selected = placement ? { tabId, placement } : null;
+    // Ctrl+C then copies the signature, not text that was selected before.
+    if (placement) window.getSelection().removeAllRanges();
     refresh();
   }
 
@@ -72,6 +80,8 @@ export function createSignatures({ store, reader, editing, folio }) {
     if (!doc) return;
     placement.png ??= await doc.engine.signaturePicture(doc.docId, placement.index, placement.key);
     copied = { png: placement.png, rect: placement.rect, tabId, index: placement.index };
+    markCopied('signature');
+    notice.show('Signature copied. Go to a page and press Ctrl+V.', 3000);
   }
 
   // Puts the copied signature on a page, a little off the original when it is the same page.
@@ -171,7 +181,7 @@ export function createSignatures({ store, reader, editing, folio }) {
 
   document.addEventListener('copy', (event) => {
     const picked = signatureHere();
-    if (!picked || !window.getSelection().isCollapsed) return;
+    if (!picked || event.defaultPrevented || !window.getSelection().isCollapsed) return;
     event.preventDefault();
     report(copy(picked.tabId, picked.placement));
   });
@@ -179,7 +189,7 @@ export function createSignatures({ store, reader, editing, folio }) {
   document.addEventListener('cut', (event) => {
     const picked = signatureHere();
     const doc = picked && reader.documentOf(picked.tabId);
-    if (!doc || !window.getSelection().isCollapsed) return;
+    if (!doc || event.defaultPrevented || !window.getSelection().isCollapsed) return;
     event.preventDefault();
     select(null, null);
     report(copy(picked.tabId, picked.placement).then(() => editing.run(picked.tabId, removeSignature(doc, picked.placement))));
@@ -187,7 +197,7 @@ export function createSignatures({ store, reader, editing, folio }) {
 
   document.addEventListener('paste', (event) => {
     const tab = activeTab(store.getState());
-    if (!copied || !tab || event.defaultPrevented || isTextField(document.activeElement)) return;
+    if (!copied || lastCopied() !== 'signature' || !tab || event.defaultPrevented || isTextField(document.activeElement)) return;
     event.preventDefault();
     report(paste(tab.id, tab.page - 1));
   });

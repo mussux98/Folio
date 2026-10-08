@@ -2,6 +2,7 @@ import { activeTab, targetPages } from '../../state/store.js';
 import { rotatePages } from '../../commands/rotate-page.js';
 import { deletePages, movePages, insertBlankPage, insertPagesFromFiles } from '../../commands/page-structure.js';
 import { createNotice } from '../notice.js';
+import { markCopied } from '../clipboard.js';
 import { askPartSize } from './split-dialog.js';
 
 const range = (from, length) => Array.from({ length }, (_, i) => from + i);
@@ -59,6 +60,7 @@ export function createPageTools({ store, reader, editing, folio }) {
       notice.show(err.message);
       return false;
     }
+    markCopied('pages');
     notice.show(here.pages.length === 1 ? 'Copied 1 page.' : `Copied ${here.pages.length} pages.`, 2500);
     return true;
   }
