@@ -273,6 +273,7 @@ export function createEngine() {
   const pageImages = (id) => createPageImages(get(id), (index, task) => withPage(id, index, task), redactionsOf(id));
   const listPageImages = (id, index) => pageImages(id).list(index);
   const deletePageImage = (id, index, picture) => restructured(id, pageImages(id).remove(index, picture));
+  const copyPageImage = (id, index, picture) => pageImages(id).copy(index, picture);
   const liftPageImage = (id, index, picture) => restructured(id, pageImages(id).lift(index, picture));
 
   // OCR: the page as a picture for Tesseract, which pages have no text, and the
@@ -339,7 +340,7 @@ export function createEngine() {
     openDocument, authenticate, closeDocument, pageSizes, renderPage, getText, searchPage, getLinks, getOutline,
     pageTransform, rotatePage, deletePages, restorePages, arrangePages, addBlankPage, insertPagesFrom, extractPages, addSignature, moveSignature, removeSignature, listSignatures, signaturePicture,
     addAnnotation, changeAnnotation, removeAnnotation, listAnnotations, summarizeAnnotations, listFormFields, setFormValue,
-    textLineAt, documentFonts, replaceText, swapText, redact, swapRedaction, listPageImages, deletePageImage, liftPageImage, save, saveSmaller,
+    textLineAt, documentFonts, replaceText, swapText, redact, swapRedaction, listPageImages, deletePageImage, liftPageImage, copyPageImage, save, saveSmaller,
     setProtection, isProtected, ocrPicture, pagesWithoutText, addOcrText, swapOcrText,
   };
 }

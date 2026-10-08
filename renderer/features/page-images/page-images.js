@@ -2,6 +2,7 @@ import { activeTab } from '../../state/store.js';
 import { deletePageImage, liftPageImage } from '../../commands/page-image.js';
 import { createNotice } from '../notice.js';
 import { buildImageLayer } from './image-layer.js';
+import { markCopied } from '../clipboard.js';
 
 const HINT = 'Drag a picture to move it, or select it and press Delete. Esc or Images again stops.';
 const isTextField = (el) => el?.matches?.('input, textarea, select');
@@ -25,6 +26,8 @@ export function createPageImages({ store, reader, editing }) {
 
   function select(next) {
     selected = next;
+    // Ctrl+C then copies the picture, not text that was selected before.
+    if (next) window.getSelection().removeAllRanges();
     refresh();
   }
 
@@ -44,10 +47,23 @@ export function createPageImages({ store, reader, editing }) {
     select(null);
     editing.run(tabId, makeCommand(doc)).catch((err) => {
       console.error('Picture edit failed:', err);
-      const reason = String(err.message ?? '').replace(/^Error:s*/, '').slice(0, 90);
+      const reason = String(err.message ?? '').replace(/^Error:\s*/, '').slice(0, 90);
       notice.show(err.message?.includes('overlaps') ? err.message : `This picture could not be changed${reason ? ` (${reason})` : ''}.`);
       reader.pagesChanged(tabId, [index]);
     });
+  }
+
+  // Copies a picture of the page, to be pasted (Ctrl+V) as a stamp on any page; the page is not changed.
+  async function copyPicture(tabId, index, id) {
+    const doc = reader.documentOf(tabId);
+    if (!doc) return;
+    try {
+      const { png, rect } = await doc.engine.copyPageImage(doc.docId, index, id);
+      markCopied('signature', { png, rect, tabId, index });
+      notice.show('Picture copied. Go to a page and press Ctrl+V.', 3000);
+    } catch (err) {
+      notice.show(err.message || 'This picture could not be copied.');
+    }
   }
 
   function layerFor({ tabId, index, pictures, width, height }) {
@@ -59,6 +75,7 @@ export function createPageImages({ store, reader, editing }) {
         isSelected: (id) => selected?.tabId === tabId && selected.index === index && selected.id === id,
         select: (id) => select(id === null ? null : { tabId, index, id }),
         lift: (id, rect) => run(tabId, index, (doc) => liftPageImage(doc, index, id, rect)),
+        copy: (id) => copyPicture(tabId, index, id),
         remove: (id) => run(tabId, index, (doc) => deletePageImage(doc, index, id)),
       },
     });
@@ -69,6 +86,14 @@ export function createPageImages({ store, reader, editing }) {
 
   document.addEventListener('pointerdown', (event) => {
     if (selected && !event.target.closest?.('.image-box')) select(null);
+  });
+
+  // Ctrl+C (or Edit → Copy) on a selected picture.
+  document.addEventListener('copy', (event) => {
+    if (!on || !selected || event.defaultPrevented || isTextField(document.activeElement) || !window.getSelection().isCollapsed) return;
+    if (selected.tabId !== activeTab(store.getState())?.id) return;
+    event.preventDefault();
+    copyPicture(selected.tabId, selected.index, selected.id);
   });
 
   document.addEventListener('keydown', (event) => {

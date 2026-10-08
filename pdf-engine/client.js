@@ -115,6 +115,7 @@ export function createEngineClient() {
     listPageImages: (id, index, priority) => request('listPageImages', [id, index], { priority }),
     deletePageImage: (id, index, picture) => call('deletePageImage', [id, index, picture], { priority: -1 }),
     liftPageImage: (id, index, picture) => call('liftPageImage', [id, index, picture], { priority: -1 }),
+    copyPageImage: (id, index, picture) => call('copyPageImage', [id, index, picture], { priority: -1 }),
     documentFonts: (id) => call('documentFonts', [id], { priority: -1 }),
     save: (id) => call('save', [id], { priority: -1 }),
     saveSmaller: (id, quality) => call('saveSmaller', [id, quality], { priority: -1 }),

@@ -7,7 +7,7 @@ import { askForSignature } from './dialog.js';
 import { placedAt, turnedRect, replacedRect, pastedRect } from './geometry.js';
 import { turnPicture } from './turn.js';
 import { createNotice } from '../notice.js';
-import { markCopied, lastCopied } from '../clipboard.js';
+import { markCopied, copiedSignature } from '../clipboard.js';
 
 const isTextField = (el) => el?.matches?.('input, textarea, select');
 
@@ -22,7 +22,6 @@ export function createSignatures({ store, reader, editing, folio }) {
   let armed = null; // the library item that the next click on a page places
   let selected = null; // { tabId, placement }
   let closeMenu = null;
-  let copied = null; // { png, rect, tabId, index }: the last signature copied, for any page of any tab
 
   const notice = createNotice();
   const report = (promise) => promise.catch((err) => {
@@ -79,8 +78,7 @@ export function createSignatures({ store, reader, editing, folio }) {
     const doc = reader.documentOf(tabId);
     if (!doc) return;
     placement.png ??= await doc.engine.signaturePicture(doc.docId, placement.index, placement.key);
-    copied = { png: placement.png, rect: placement.rect, tabId, index: placement.index };
-    markCopied('signature');
+    markCopied('signature', { png: placement.png, rect: placement.rect, tabId, index: placement.index });
     notice.show('Signature copied. Go to a page and press Ctrl+V.', 3000);
   }
 
@@ -88,11 +86,12 @@ export function createSignatures({ store, reader, editing, folio }) {
   // A copy pasted again lands a little off the last one.
   async function paste(tabId, index) {
     const doc = reader.documentOf(tabId);
+    const copied = copiedSignature();
     if (!copied || !doc) return;
     const [width, height] = doc.pageSize(index);
     const rect = pastedRect(copied.rect, copied.tabId === tabId && copied.index === index, { width, height });
     const placement = adopt(tabId, { index, png: copied.png, rect, key: null });
-    copied = { ...copied, rect, tabId, index };
+    markCopied('signature', { ...copied, rect, tabId, index });
     await editing.run(tabId, placeSignature(doc, placement));
     select(tabId, placement);
   }
@@ -197,7 +196,7 @@ export function createSignatures({ store, reader, editing, folio }) {
 
   document.addEventListener('paste', (event) => {
     const tab = activeTab(store.getState());
-    if (!copied || lastCopied() !== 'signature' || !tab || event.defaultPrevented || isTextField(document.activeElement)) return;
+    if (!copiedSignature() || !tab || event.defaultPrevented || isTextField(document.activeElement)) return;
     event.preventDefault();
     report(paste(tab.id, tab.page - 1));
   });

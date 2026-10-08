@@ -268,5 +268,18 @@ export function createPageImages(doc, withPage, redactions) {
     return { key, ...result };
   }
 
-  return { list, remove, lift };
+  // What a stamp needs to show the picture, { png, rect }, without changing the page.
+  function copy(index, id) {
+    return withPage(index, (page) => {
+      const pictures = drawnPictures(page);
+      try {
+        if (!pictures[id]) throw new Error('That picture is no longer on the page.');
+        return lookOf(page, pictures[id]);
+      } finally {
+        release(pictures);
+      }
+    });
+  }
+
+  return { list, remove, lift, copy };
 }

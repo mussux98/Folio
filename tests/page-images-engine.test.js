@@ -203,3 +203,14 @@ test('a picture whose transparency is a colour key can be lifted into a stamp an
   const second = engine.openDocument(makeKeyedLogo(mupdf));
   assert.doesNotThrow(() => engine.deletePageImage(second.id, 0, 0));
 });
+
+test('copying a picture gives its look and place and leaves the page as it was', async () => {
+  const { mupdf, engine } = await load();
+  const { id } = engine.openDocument(makeFile(mupdf));
+  const before = engine.listPageImages(id, 0);
+  const copy = engine.copyPageImage(id, 0, before[0].id);
+  assert.deepStrictEqual([copy.rect.x, copy.rect.y, copy.rect.w, copy.rect.h].map(Math.round), [20, 120, 60, 30]);
+  assert.ok(copy.png.length > 50);
+  assert.deepStrictEqual(engine.listPageImages(id, 0), before, 'the picture is still on the page');
+  assert.throws(() => engine.copyPageImage(id, 0, 99), /no longer/);
+});

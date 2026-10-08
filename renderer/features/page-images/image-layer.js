@@ -16,7 +16,7 @@ function place(el, { x, y, w, h }) {
 // the signature boxes' look. Dragging a picture or a corner lifts it out of the
 // page into a stamp where it was dropped.
 // pictures: [{ id, x, y, w, h }] from the engine.
-// handlers: { isSelected(id), select(id | null), lift(id, rect), remove(id) }
+// handlers: { isSelected(id), select(id | null), lift(id, rect), copy(id), remove(id) }
 export function buildImageLayer({ pictures, width, height, handlers }) {
   const el = document.createElement('div');
   el.className = 'image-layer';
@@ -70,12 +70,17 @@ export function buildImageLayer({ pictures, width, height, handlers }) {
     const bar = document.createElement('div');
     bar.className = picture.y < BAR_ROOM ? 'sign-bar below' : 'sign-bar';
     bar.addEventListener('pointerdown', (event) => event.stopPropagation());
+    const copy = document.createElement('button');
+    copy.textContent = 'Copy';
+    copy.title = 'Copy this picture, to paste it as a signature on any page (Ctrl+C)';
+    copy.setAttribute('aria-label', copy.title);
+    copy.addEventListener('click', () => handlers.copy(picture.id));
     const remove = document.createElement('button');
     remove.textContent = 'Delete';
     remove.title = 'Delete this picture from the page (Delete key)';
     remove.setAttribute('aria-label', remove.title);
     remove.addEventListener('click', () => handlers.remove(picture.id));
-    bar.append(remove);
+    bar.append(copy, remove);
     box.append(bar);
     boxes.push({ box, picture });
     el.append(box);
