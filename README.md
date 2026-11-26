@@ -7,6 +7,9 @@ A desktop PDF reader and editor for Windows. Read, edit text, sign, annotate, fi
 2. Run it. Windows will show **"Windows protected your PC"** and name the publisher as unknown. Folio is not code-signed yet, so this is expected.
 3. Click **More info**, then **Run anyway**.
 
+## Update
+Download the newest `Folio Setup <version>.exe` from the Releases page and run it. It installs over the old version and keeps your settings and saved signatures. Folio never checks for updates by itself.
+
 ## Build from source
 ```
 npm install

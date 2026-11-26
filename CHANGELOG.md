@@ -2,6 +2,17 @@
 
 All notable changes to Folio are documented here. Format follows Keep a Changelog; versions follow Semantic Versioning.
 
+## [2.1.0] - 2026-11-25
+### Added
+- Edit Images: a Copy button (or Ctrl+C) on a picture that is part of the page copies it, to paste as a stamp on any page.
+- A copied signature or picture also goes on the system clipboard, so it can be pasted into Word, WhatsApp and other apps.
+- Redaction also removes highlights, underlines, strikes, notes and stamps that sit mostly inside the redacted area, and undo brings them back.
+### Fixed
+- Ctrl+V pastes a copied signature or picture again; the clipboard being empty used to stop the paste.
+### Changed
+- Large pictures with transparency load faster when moved, copied or deleted.
+- The installer is smaller: it keeps only the English and Spanish interface languages.
+
 ## [2.0.0] - 2026-10-06
 ### Added
 - A Note button on a selected highlight, underline or strike adds a note to it; the note is saved in the markup and listed in the Annotations tab.

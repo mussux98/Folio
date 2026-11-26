@@ -152,3 +152,4 @@ Mac `open-file` event, `hiddenInset` title bar, Mac menus, Apple Developer ID si
 - **Auto-updates:** none for 1.0 (decided). Revisit with an opt-in check later.
 - **Windows code signing:** none for 1.0 (decided); SmartScreen step documented in `RELEASE.md`.
 - **Commercial MuPDF license:** only if Folio is sold as closed-source.
+- **Release 2.1.0 · ✅:** code review since 2.0.0 (picture transparency read once instead of per pixel, one pointer lookup per selection move), installer keeps only English and Spanish locales, copied pictures also go on the system clipboard, Ctrl+V read from the key. Updates are manual: friends download `Folio Setup <version>.exe` from GitHub Releases (no update check, per ARCHITECTURE rule 6). **Tested:** 269 tests, installer built, the unpacked app starts. **Not driven:** the installer on a clean machine; on a Mac.
