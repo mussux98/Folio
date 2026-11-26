@@ -2,7 +2,7 @@
 
 All notable changes to Folio are documented here. Format follows Keep a Changelog; versions follow Semantic Versioning.
 
-## [Unreleased]
+## [2.0.0] - 2026-10-06
 ### Added
 - A Note button on a selected highlight, underline or strike adds a note to it; the note is saved in the markup and listed in the Annotations tab.
 - The Outline tab is left out for documents that have no outline.
