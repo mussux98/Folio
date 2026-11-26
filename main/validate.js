@@ -8,6 +8,7 @@ const MAX_LINK_LENGTH = 4096;
 const MAX_NAMES = 100;
 const MAX_NAME_LENGTH = 260;
 const MAX_SIGNATURE_BYTES = 2 * 1024 * 1024;
+const MAX_CLIPBOARD_BYTES = 64 * 1024 * 1024;
 const PNG_MAGIC = [0x89, 0x50, 0x4e, 0x47];
 const MAX_PARTS = 1000;
 const MAX_WRITE_BYTES = 2 * 1024 * 1024 * 1024;
@@ -67,6 +68,12 @@ function parseSignaturePng(value) {
   return PNG_MAGIC.every((byte, i) => value[i] === byte) ? value : null;
 }
 
+// A copied picture can be bigger than a signature, so it has its own limit.
+function parseClipboardPng(value) {
+  if (!(value instanceof Uint8Array) || value.length < 8 || value.length > MAX_CLIPBOARD_BYTES) return null;
+  return PNG_MAGIC.every((byte, i) => value[i] === byte) ? value : null;
+}
+
 // A request for an installed font: { name, bold, italic }.
 function parseFontRequest(value) {
   if (!value || typeof value.name !== 'string' || !value.name || value.name.length > 128) return null;
@@ -79,4 +86,4 @@ function parsePartsRequest(current, count) {
   return isPath(current) && Number.isInteger(count) && count >= 2 && count <= MAX_PARTS;
 }
 
-module.exports = { parsePartsRequest, parseFontRequest, parseSignaturePng, parseSession, parseView, parseExternalLink, parseNames, parseWrite };
+module.exports = { parsePartsRequest, parseFontRequest, parseSignaturePng, parseClipboardPng, parseSession, parseView, parseExternalLink, parseNames, parseWrite };

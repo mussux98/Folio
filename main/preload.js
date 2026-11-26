@@ -20,6 +20,7 @@ contextBridge.exposeInMainWorld('folio', Object.freeze({
   listSignatures: () => ipcRenderer.invoke('signatures:list'),
   addSignature: (png) => ipcRenderer.invoke('signatures:add', png),
   removeSignature: (id) => ipcRenderer.invoke('signatures:remove', id),
+  copyImage: (png) => ipcRenderer.invoke('clipboard:image', png),
   pickPdfs: () => ipcRenderer.invoke('pages:pick-files'),
   choosePartPaths: (path, count) => ipcRenderer.invoke('pages:pick-parts', path, count),
   findFont: (request) => ipcRenderer.invoke('fonts:find', request),

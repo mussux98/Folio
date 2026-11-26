@@ -2,7 +2,7 @@ import { activeTab } from '../../state/store.js';
 import { deletePageImage, liftPageImage } from '../../commands/page-image.js';
 import { createNotice } from '../notice.js';
 import { buildImageLayer } from './image-layer.js';
-import { markCopied } from '../clipboard.js';
+import { markCopied, shareImage } from '../clipboard.js';
 
 const HINT = 'Drag a picture to move it, or select it and press Delete. Esc or Images again stops.';
 const isTextField = (el) => el?.matches?.('input, textarea, select');
@@ -60,6 +60,7 @@ export function createPageImages({ store, reader, editing }) {
     try {
       const { png, rect } = await doc.engine.copyPageImage(doc.docId, index, id);
       markCopied('signature', { png, rect, tabId, index });
+      await shareImage(png);
       notice.show('Picture copied. Go to a page and press Ctrl+V.', 3000);
     } catch (err) {
       notice.show(err.message || 'This picture could not be copied.');

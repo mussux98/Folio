@@ -15,6 +15,7 @@ module.exports = Object.freeze({
   SIGNATURES_LIST: 'signatures:list',
   SIGNATURES_ADD: 'signatures:add',
   SIGNATURES_REMOVE: 'signatures:remove',
+  CLIPBOARD_IMAGE: 'clipboard:image',
   FONTS_FIND: 'fonts:find',
   FONTS_LIST: 'fonts:list',
   FONTS_FAMILY: 'fonts:family',

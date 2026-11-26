@@ -8,6 +8,9 @@ export const markCopied = (kind, data = null) => {
   last = kind;
   item = data;
 };
+// Also puts a copied picture on the system clipboard, for Word, chats and other apps.
+// Folio's own paste uses what is kept here, so a failure only means other apps can't paste it.
+export const shareImage = (png) => window.folio.copyImage(png).catch(() => false);
 export const lastCopied = () => last;
 // { png, rect, tabId, index } of the copied signature, or null.
 export const copiedSignature = () => (last === 'signature' ? item : null);

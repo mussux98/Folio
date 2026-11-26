@@ -7,7 +7,7 @@ import { askForSignature } from './dialog.js';
 import { placedAt, turnedRect, replacedRect, pastedRect } from './geometry.js';
 import { turnPicture } from './turn.js';
 import { createNotice } from '../notice.js';
-import { markCopied, copiedSignature } from '../clipboard.js';
+import { markCopied, copiedSignature, shareImage } from '../clipboard.js';
 
 const isTextField = (el) => el?.matches?.('input, textarea, select');
 
@@ -79,6 +79,7 @@ export function createSignatures({ store, reader, editing, folio }) {
     if (!doc) return;
     placement.png ??= await doc.engine.signaturePicture(doc.docId, placement.index, placement.key);
     markCopied('signature', { png: placement.png, rect: placement.rect, tabId, index: placement.index });
+    await shareImage(placement.png);
     notice.show('Signature copied. Go to a page and press Ctrl+V.', 3000);
   }
 
@@ -194,11 +195,19 @@ export function createSignatures({ store, reader, editing, folio }) {
     report(copy(picked.tabId, picked.placement).then(() => editing.run(picked.tabId, removeSignature(doc, picked.placement))));
   });
 
-  document.addEventListener('paste', (event) => {
+  function pasteHere(event) {
     const tab = activeTab(store.getState());
     if (!copiedSignature() || !tab || event.defaultPrevented || isTextField(document.activeElement)) return;
     event.preventDefault();
     report(paste(tab.id, tab.page - 1));
+  }
+
+  document.addEventListener('paste', pasteHere);
+
+  // Nothing is put on the system clipboard when a signature is copied, and with it empty the
+  // browser does not send a paste event at all, so Ctrl+V is also read from the key itself.
+  document.addEventListener('keydown', (event) => {
+    if ((event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey && event.key.toLowerCase() === 'v') pasteHere(event);
   });
 
   // Forget the placements of tabs that were closed.

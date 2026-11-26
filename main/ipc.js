@@ -1,6 +1,6 @@
-const { ipcMain, shell } = require('electron');
+const { ipcMain, shell, clipboard, ClipboardItem } = require('electron');
 const channels = require('../shared/ipc-channels');
-const { parseSession, parseView, parseExternalLink, parseNames, parseWrite, parseSignaturePng, parseFontRequest, parsePartsRequest } = require('./validate');
+const { parseSession, parseView, parseExternalLink, parseNames, parseWrite, parseSignaturePng, parseClipboardPng, parseFontRequest, parsePartsRequest } = require('./validate');
 const { readPdf } = require('./pdf-path');
 
 function registerIpc({ settings, documents, saving, pageDialogs, signatures, systemFonts, getWindow }) {
@@ -62,6 +62,14 @@ function registerIpc({ settings, documents, saving, pageDialogs, signatures, sys
   ipcMain.handle(channels.SIGNATURES_ADD, async (event, png) => {
     const clean = fromWindow(event) && parseSignaturePng(png);
     return clean ? signatures.add(clean) : null;
+  });
+
+  // Puts a copied picture on the system clipboard, so Word or a chat can paste it.
+  ipcMain.handle(channels.CLIPBOARD_IMAGE, async (event, png) => {
+    const clean = fromWindow(event) && parseClipboardPng(png);
+    if (!clean) return false;
+    await clipboard.write([new ClipboardItem({ 'image/png': new Blob([clean], { type: 'image/png' }) })]);
+    return true;
   });
 
   ipcMain.handle(channels.SIGNATURES_REMOVE, (event, id) => (fromWindow(event) && typeof id === 'string' ? signatures.remove(id) : false));
