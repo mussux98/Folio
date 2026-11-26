@@ -42,6 +42,11 @@
       "!node_modules/tesseract.js-core/tesseract-core{,-simd,-relaxedsimd}-lstm.js",
       "!node_modules/tesseract.js/{src,docs,scripts}/**"
     ],
+    "electronLanguages": [
+      "en-US",
+      "es",
+      "es-419"
+    ],
     "asarUnpack": [
       "node_modules/mupdf/**"
     ],

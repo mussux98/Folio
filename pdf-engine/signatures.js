@@ -52,17 +52,25 @@ export function withAlpha(doc, ref) {
     const rgb = colour.getPixels();
     const target = out.getPixels();
     const alpha = mask?.toPixmap();
+    // Read once: asking the pixmap for its pixels and size on every pixel is slow on big pictures.
+    const soft = alpha?.getPixels();
+    const maskWidth = alpha?.getWidth();
+    const maskHeight = alpha?.getHeight();
+    const step = alpha?.getNumberOfComponents();
     for (let y = 0; y < height; y++) {
+      const my = alpha ? Math.floor((y * maskHeight) / height) : 0;
       for (let x = 0; x < width; x++) {
         const i = y * width + x;
-        target.set([rgb[i * 3], rgb[i * 3 + 1], rgb[i * 3 + 2], own ? own[i] : 255], i * 4);
+        target[i * 4] = rgb[i * 3];
+        target[i * 4 + 1] = rgb[i * 3 + 1];
+        target[i * 4 + 2] = rgb[i * 3 + 2];
+        let a = own ? own[i] : 255;
         if (alpha) {
           // The mask may have its own size; take the nearest of its pixels.
-          const mx = Math.floor((x * alpha.getWidth()) / width);
-          const my = Math.floor((y * alpha.getHeight()) / height);
-          const soft = alpha.getPixels()[(my * alpha.getWidth() + mx) * alpha.getNumberOfComponents()];
-          target[i * 4 + 3] = Math.round((soft * target[i * 4 + 3]) / 255);
+          const mx = Math.floor((x * maskWidth) / width);
+          a = Math.round((soft[(my * maskWidth + mx) * step] * a) / 255);
         }
+        target[i * 4 + 3] = a;
       }
     }
     alpha?.destroy();

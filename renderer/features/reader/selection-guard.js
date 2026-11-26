@@ -32,9 +32,10 @@ function snapToLine(layer, x, y) {
 // The text position (node, offset) for a point: where the point is if it is over text,
 // else the nearest text. Null when the point is not over a page.
 function caretAt(x, y) {
-  const layer = document.elementFromPoint(x, y)?.closest('.text-layer');
+  const target = document.elementFromPoint(x, y);
+  const layer = target?.closest('.text-layer');
   if (!layer) return null;
-  const over = document.elementFromPoint(x, y)?.closest('.text-line') ? { x, y } : snapToLine(layer, x, y);
+  const over = target.closest('.text-line') ? { x, y } : snapToLine(layer, x, y);
   if (!over) return null;
   const position = document.caretPositionFromPoint(over.x, over.y);
   return position ? { node: position.offsetNode, offset: position.offset } : null;
